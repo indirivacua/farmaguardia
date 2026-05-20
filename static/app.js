@@ -685,7 +685,7 @@ async function loadData({ fresh = false } = {}) {
   if (fresh) ListView.showLoading('Re-scrapeando colfarmalp.org.ar…');
 
   try {
-    const url = fresh ? '/api/farmacias?fresh=1' : '/api/farmacias';
+	const url = 'data/farmacias.json';
     const r = await fetch(url);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = await r.json();
