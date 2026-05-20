@@ -1,0 +1,206 @@
+{
+  "timestamp": "20/5/2026 a las: 15:53 horas",
+  "scraped_at": "2026-05-20T18:53:45+00:00",
+  "source": "https://www.colfarmalp.org.ar/turnos-la-plata/",
+  "count": 23,
+  "pharmacies": [
+    {
+      "name": "BRANDSEN",
+      "address": "60 E/ 24 Y 25 NRO 1465",
+      "zone": "La Plata",
+      "phone": "4510915",
+      "lat": -34.93691,
+      "lng": -57.95941
+    },
+    {
+      "name": "BELGRANO S.C.S.",
+      "address": "13 esq 36 nro 199",
+      "zone": "La Plata",
+      "phone": "221-304-2021",
+      "lat": -34.90956,
+      "lng": 0.0
+    },
+    {
+      "name": "BENITEZ",
+      "address": "1 NRO 2037 E/ 73 Y 74",
+      "zone": "La Plata",
+      "phone": "4521789",
+      "lat": -34.9270261,
+      "lng": -57.9198628
+    },
+    {
+      "name": "DEL PASEO S.C.S.",
+      "address": "Diag 80 nro 960 e/ 4 y 5",
+      "zone": "La Plata",
+      "phone": "4830257",
+      "lat": -34.91172,
+      "lng": -57.94848
+    },
+    {
+      "name": "BENTABERRY",
+      "address": "22 e/76 y 77 nro 2169",
+      "zone": "La Plata",
+      "phone": "4515282",
+      "lat": -34.94841,
+      "lng": -57.93912
+    },
+    {
+      "name": "FARLUZ S.C.S.",
+      "address": "66 nro 761 e/ 10 y 11",
+      "zone": "La Plata",
+      "phone": "4515711",
+      "lat": -34.9289092,
+      "lng": -57.9382347
+    },
+    {
+      "name": "ABDALA LA PLATA S.C.S.",
+      "address": "2 nro 190 1/2 e/35 y 36",
+      "zone": "La Plata",
+      "phone": "4891773",
+      "lat": -34.8989311,
+      "lng": -57.9594673
+    },
+    {
+      "name": "GELATI",
+      "address": "46 esq 14 nro 950",
+      "zone": "La Plata",
+      "phone": "4212934",
+      "lat": -34.91898,
+      "lng": -57.96001
+    },
+    {
+      "name": "SALA (ex GOZZI)",
+      "address": "197 esquina 46",
+      "zone": "La Plata",
+      "phone": "(221) 4962767",
+      "lat": -34.99687,
+      "lng": -58.04594
+    },
+    {
+      "name": "SOTO",
+      "address": "56 esq 10",
+      "zone": "La Plata",
+      "phone": "4233037",
+      "lat": -34.9220684,
+      "lng": -57.9499613
+    },
+    {
+      "name": "LAURITO",
+      "address": "3 ESQ. 60 NRO 1350",
+      "zone": "La Plata",
+      "phone": "4210827",
+      "lat": -34.91699,
+      "lng": -57.93756
+    },
+    {
+      "name": "LUPINUCCI",
+      "address": "7 ESQ. 525",
+      "zone": "La Plata",
+      "phone": "4828828",
+      "lat": -34.8946202,
+      "lng": -57.9769579
+    },
+    {
+      "name": "MARQUEZ",
+      "address": "25 nro 32 e/32 y 33",
+      "zone": "La Plata",
+      "phone": "4798013",
+      "lat": -34.9178372,
+      "lng": -57.9866258
+    },
+    {
+      "name": "FARIVONE S.C.S.",
+      "address": "24 ESQ. 44 NRO 600",
+      "zone": "La Plata",
+      "phone": "4796725",
+      "lat": -34.92638,
+      "lng": -57.97274
+    },
+    {
+      "name": "ROSITO",
+      "address": "RUTA 11 ESQ 95",
+      "zone": "La Plata",
+      "phone": "4867687",
+      "lat": -34.93208,
+      "lng": -57.88871
+    },
+    {
+      "name": "VALINOTI",
+      "address": "56 ESQ 19 NRO 1199",
+      "zone": "La Plata",
+      "phone": "4533025",
+      "lat": -34.92892,
+      "lng": -57.95795
+    },
+    {
+      "name": "AVENIDA 520",
+      "address": "520 Esq 172",
+      "zone": "La Plata",
+      "phone": "1",
+      "lat": -34.9518279,
+      "lng": -58.049928
+    },
+    {
+      "name": "PASTORE",
+      "address": "AV.13 E/ 600 Y 601 Nº 3376",
+      "zone": "La Plata",
+      "phone": "221-6037409",
+      "lat": -34.95584,
+      "lng": -57.90738
+    },
+    {
+      "name": "LARROUDE",
+      "address": "511 E/ 21 Y 22 NRO 2629",
+      "zone": "Norte",
+      "phone": "221-5554006 / 4844450",
+      "lat": -34.8937833,
+      "lng": -58.00462600000003
+    },
+    {
+      "name": "MEYER S.C.S.",
+      "address": "Cno Gral Belgrano nro 635 e/ 466 y 467 City Bell",
+      "zone": "Norte",
+      "phone": "4722323",
+      "lat": -34.8804223,
+      "lng": -58.0603099
+    },
+    {
+      "name": "VILLA ELISA",
+      "address": "42 E/ 5 y 6",
+      "zone": "Norte",
+      "phone": "4733152",
+      "lat": -34.8523989,
+      "lng": -58.0782709
+    },
+    {
+      "name": "FRATELLI S.C.S.",
+      "address": "62 esq 141 nro 1451",
+      "zone": "Los Hornos",
+      "phone": "4505135",
+      "lat": -34.9549588,
+      "lng": -57.9772153
+    },
+    {
+      "name": "GIRALDEZ",
+      "address": "68 e/140 y 141",
+      "zone": "Los Hornos",
+      "phone": "0",
+      "lat": -34.9597044,
+      "lng": -57.9732475
+    }
+  ],
+  "pdfs": [
+    {
+      "label": "Descargar Turnero La Plata Centro",
+      "url": "https://www.colfarmalp.org.ar/wp-content/uploads/turnos/lp.pdf"
+    },
+    {
+      "label": "Descargar Turnero Zona Norte",
+      "url": "https://www.colfarmalp.org.ar/wp-content/uploads/turnos/zn.pdf"
+    },
+    {
+      "label": "Descargar Turnero Los Hornos",
+      "url": "https://www.colfarmalp.org.ar/wp-content/uploads/turnos/lh.pdf"
+    }
+  ]
+}
