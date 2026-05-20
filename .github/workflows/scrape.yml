@@ -1,7 +1,7 @@
 name: Scrape farmacias
 on:
   schedule:
-    - cron: '0 * * * *'  # cada hora
+    - cron: '17 * * * *'  # cada hora
   workflow_dispatch:      # también manual desde la UI
 jobs:
   scrape:
