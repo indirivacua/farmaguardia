@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: '3.11' }
       - run: pip install -r requirements.txt
+      - run: mkdir -p docs/data
       - run: python app.py --dump docs/data/farmacias.json
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
