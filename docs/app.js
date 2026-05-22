@@ -58,6 +58,25 @@ function formatDistance(meters) {
   return `${(meters / 1000).toFixed(meters < 10000 ? 1 : 0)} km`;
 }
 
+/**
+ * Valida coordenadas de una farmacia. Si el scraper sacó la lat/lng de una
+ * URL de Google Maps mal formada (ej.: `destination=0,0` cuando el sitio
+ * no tenía link real), la farmacia aparecería en el medio del océano y
+ * arrastraría el mapa entero. Filtramos esos casos:
+ *   - no numéricos / NaN / null
+ *   - exactamente 0 en lat o lng (placeholder típico de error de parseo)
+ *   - fuera de rango terrestre (lat ∈ [-90,90], lng ∈ [-180,180])
+ */
+function hasValidCoords(f) {
+  const lat = Number(f.lat);
+  const lng = Number(f.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  if (lat === 0 || lng === 0) return false;
+  if (lat < -90 || lat > 90) return false;
+  if (lng < -180 || lng > 180) return false;
+  return true;
+}
+
 // -------------- State --------------
 const state = {
   pharmacies: [],
@@ -139,6 +158,10 @@ const MapView = (() => {
     markers.clear();
 
     pharmacies.forEach(f => {
+      // Si la farmacia no tiene coordenadas válidas, no la dibujamos en el
+      // mapa. Igual aparece en la lista con un aviso (ver ListView.cardHTML).
+      if (!hasValidCoords(f)) return;
+
       const icon = L.divIcon({
         className: 'custom-pin',
         html: pinHTML(ZONE_COLORS[f.zone] || DEFAULT_COLOR),
@@ -197,6 +220,7 @@ const MapView = (() => {
   }
 
   function flyTo(f) {
+    if (!hasValidCoords(f)) return;
     map.flyTo([f.lat, f.lng], Math.max(map.getZoom(), 16), { duration: 0.6 });
     setTimeout(() => markers.get(f.id)?.openPopup(), 400);
   }
@@ -266,17 +290,40 @@ const ListView = (() => {
 
   function cardHTML(f, idx) {
     const color = ZONE_COLORS[f.zone] || DEFAULT_COLOR;
+    const invalidCoords = !hasValidCoords(f);
+
     const distHtml = f.distance != null
       ? `<span class="pharma-distance">${formatDistance(f.distance)}</span>`
       : `<div class="pharma-num">Nº ${String(idx + 1).padStart(2, '0')}</div>`;
 
+    // Aviso simple para el usuario final. Sin tecnicismos: la dirección
+    // está en la card, pero el mapa no la puede ubicar.
+    const warnHtml = invalidCoords
+      ? `<div class="pharma-warn">No se puede mostrar en el mapa porque la dirección no se pudo ubicar. Revisá la dirección o llamá antes de ir.</div>`
+      : '';
+
+    // El botón "Ir" abre Google Maps con la lat/lng — si son inválidas
+    // mandaríamos al usuario al medio del océano, así que lo deshabilitamos.
+    const goBtn = invalidCoords
+      ? `<span class="pharma-btn disabled" aria-disabled="true" title="Ubicación no disponible">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+           Sin ubicación
+         </span>`
+      : `<a class="pharma-btn" target="_blank" rel="noopener"
+            href="https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}"
+            onclick="event.stopPropagation()">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+           Ir
+         </a>`;
+
     return `
-      <article class="pharma ${state.activeId === f.id ? 'active' : ''}" data-id="${f.id}">
+      <article class="pharma ${invalidCoords ? 'no-coords' : ''} ${state.activeId === f.id ? 'active' : ''}" data-id="${f.id}">
         <div class="pharma-head">
           <div class="pharma-name">${escapeHtml(f.name)}</div>
           ${distHtml}
         </div>
         <div class="pharma-addr">${escapeHtml(f.address)}</div>
+        ${warnHtml}
         <div class="pharma-meta">
           <span class="zone-tag">
             <span class="dot" style="background:${color}"></span>
@@ -287,12 +334,7 @@ const ListView = (() => {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
               ${escapeHtml(f.phone)}
             </a>
-            <a class="pharma-btn" target="_blank" rel="noopener"
-               href="https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}"
-               onclick="event.stopPropagation()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Ir
-            </a>
+            ${goBtn}
           </div>
         </div>
       </article>`;
@@ -463,7 +505,8 @@ const Geo = (() => {
     }
     const { lat, lng } = state.userLocation;
     state.pharmacies.forEach(f => {
-      f.distance = haversine(lat, lng, f.lat, f.lng);
+      // Farmacias sin coords válidas no tienen distancia calculable
+      f.distance = hasValidCoords(f) ? haversine(lat, lng, f.lat, f.lng) : null;
     });
   }
 
@@ -594,10 +637,18 @@ function selectPharmacy(id, opts = {}) {
 
   MapView.highlight(id);
 
+  const canShowOnMap = hasValidCoords(f);
+
   if (opts.fromList) {
-    MapView.flyTo(f);
-    if (isMobile()) {
-      BottomSheet.setState('hidden');   // dejo ver el mapa
+    if (canShowOnMap) {
+      MapView.flyTo(f);
+      if (isMobile()) {
+        BottomSheet.setState('hidden');   // dejo ver el mapa
+      }
+    } else {
+      // No tiene sentido volar el mapa a un punto inválido. Avisamos al
+      // usuario y mantenemos la lista visible para que vea el detalle.
+      Toast.show('Esta farmacia no se puede mostrar en el mapa', { isError: true });
     }
   }
 
