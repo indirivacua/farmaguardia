@@ -1,15 +1,6 @@
-/* ============================================================
-   FarmaGuardia LP — frontend
-   ============================================================
-   Responsabilidades:
-     - Cargar /api/farmacias y renderizar lista + mapa (Leaflet)
-     - Filtros por zona + búsqueda libre
-     - Sincronización mapa ↔ lista (selección bidireccional)
-     - Geolocalización opcional (off por defecto)
-     - En mobile: bottom-sheet arrastrable con 3 estados
-   ============================================================ */
+/* FarmaGuardia LP — frontend (Leaflet + vanilla JS) */
 
-// -------------- Config --------------
+// --- Config ---
 const ZONE_COLORS = {
   'La Plata':   '#0f4c3a',
   'Norte':      '#5b8fb5',
@@ -17,10 +8,12 @@ const ZONE_COLORS = {
 };
 const DEFAULT_COLOR = '#0f4c3a';
 const MOBILE_BREAKPOINT = 820;
-const DEFAULT_CENTER = [-34.92, -57.96]; // La Plata
+const DEFAULT_CENTER = [-34.92, -57.96];
 const DEFAULT_ZOOM = 13;
+const DATA_URL = 'data/farmacias.json';
+const POS_REFRESH_THRESHOLD_M = 10;   // umbral para re-renderizar en watchPosition
 
-// -------------- DOM helpers --------------
+// --- DOM helpers ---
 const $ = (sel) => document.querySelector(sel);
 
 function escapeHtml(s) {
@@ -34,13 +27,8 @@ function cleanPhone(p) {
   return first.replace(/[^\d+]/g, '');
 }
 
-function isMobile() {
-  return window.innerWidth <= MOBILE_BREAKPOINT;
-}
+const isMobile = () => window.innerWidth <= MOBILE_BREAKPOINT;
 
-/**
- * Distancia entre dos coordenadas (Haversine), en metros.
- */
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371000;
   const toRad = d => d * Math.PI / 180;
@@ -58,15 +46,9 @@ function formatDistance(meters) {
   return `${(meters / 1000).toFixed(meters < 10000 ? 1 : 0)} km`;
 }
 
-/**
- * Valida coordenadas de una farmacia. Si el scraper sacó la lat/lng de una
- * URL de Google Maps mal formada (ej.: `destination=0,0` cuando el sitio
- * no tenía link real), la farmacia aparecería en el medio del océano y
- * arrastraría el mapa entero. Filtramos esos casos:
- *   - no numéricos / NaN / null
- *   - exactamente 0 en lat o lng (placeholder típico de error de parseo)
- *   - fuera de rango terrestre (lat ∈ [-90,90], lng ∈ [-180,180])
- */
+// Filtra lat/lng inválidas. El caso clásico: el sitio publica una URL de
+// Google Maps con `destination=0,0` cuando no tenía coords reales, y la
+// farmacia terminaría en el medio del océano arrastrando todo el viewport.
 function hasValidCoords(f) {
   const lat = Number(f.lat);
   const lng = Number(f.lng);
@@ -77,18 +59,16 @@ function hasValidCoords(f) {
   return true;
 }
 
-// -------------- State --------------
+// --- State ---
 const state = {
   pharmacies: [],
-  meta: {},
   filter: 'all',
   search: '',
   activeId: null,
-  userLocation: null,      // { lat, lng, accuracy } | null
-  locating: false,
+  userLocation: null,
 };
 
-// -------------- Toast --------------
+// --- Toast ---
 const Toast = (() => {
   const el = $('#toast');
   let hideTimer;
@@ -102,13 +82,24 @@ const Toast = (() => {
   return { show };
 })();
 
-// -------------- Map --------------
+// --- Shared HTML fragments ---
+const SVG_PHONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+const SVG_PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+
+function callButton(phone, label) {
+  return `<a class="pharma-btn call" href="tel:${cleanPhone(phone)}" data-stop>${SVG_PHONE}${escapeHtml(label)}</a>`;
+}
+function goButton(f, label) {
+  if (!hasValidCoords(f)) {
+    return `<span class="pharma-btn disabled" aria-disabled="true" title="Ubicación no disponible">${SVG_PIN}Sin ubicación</span>`;
+  }
+  return `<a class="pharma-btn" target="_blank" rel="noopener" data-stop href="https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}">${SVG_PIN}${escapeHtml(label)}</a>`;
+}
+
+// --- Map ---
 const MapView = (() => {
   const map = L.map('map', {
-    center: DEFAULT_CENTER,
-    zoom: DEFAULT_ZOOM,
-    zoomControl: true,
-    tap: true,
+    center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM, zoomControl: true, tap: true,
   });
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -134,22 +125,13 @@ const MapView = (() => {
 
   function popupHTML(f) {
     const dist = f.distance != null
-      ? `<div style="margin-top:4px;font-family:Fraunces,serif;font-style:italic;font-size:12px;color:#0f4c3a">A ${formatDistance(f.distance)} de tu ubicación</div>` : '';
+      ? `<div style="margin-top:4px;font-family:Fraunces,serif;font-style:italic;font-size:12px;color:#0f4c3a">A ${formatDistance(f.distance)} de tu ubicación</div>`
+      : '';
     return `
       <div>
         <div class="popup-name">${escapeHtml(f.name)}</div>
         <div class="popup-addr">${escapeHtml(f.address)}<br/><strong>${escapeHtml(f.zone)}</strong>${dist}</div>
-        <div class="popup-actions">
-          <a class="pharma-btn call" href="tel:${cleanPhone(f.phone)}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            Llamar
-          </a>
-          <a class="pharma-btn" target="_blank" rel="noopener"
-             href="https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Cómo llegar
-          </a>
-        </div>
+        <div class="popup-actions">${callButton(f.phone, 'Llamar')}${goButton(f, 'Cómo llegar')}</div>
       </div>`;
   }
 
@@ -157,11 +139,8 @@ const MapView = (() => {
     markers.forEach(m => map.removeLayer(m));
     markers.clear();
 
-    pharmacies.forEach(f => {
-      // Si la farmacia no tiene coordenadas válidas, no la dibujamos en el
-      // mapa. Igual aparece en la lista con un aviso (ver ListView.cardHTML).
-      if (!hasValidCoords(f)) return;
-
+    for (const f of pharmacies) {
+      if (!hasValidCoords(f)) continue;   // sin marker; igual aparece en la lista con aviso
       const icon = L.divIcon({
         className: 'custom-pin',
         html: pinHTML(ZONE_COLORS[f.zone] || DEFAULT_COLOR),
@@ -174,14 +153,12 @@ const MapView = (() => {
         .on('click', () => onSelect(f.id, { fromMarker: true }));
       marker.addTo(map);
       markers.set(f.id, marker);
-    });
+    }
 
     fitToVisibleMarkers();
   }
 
   function updatePopups(pharmaciesById) {
-    // Cuando cambian las distancias (al obtener la ubicación), actualizamos
-    // el HTML de cada popup para reflejar la distancia.
     markers.forEach((marker, id) => {
       const f = pharmaciesById.get(id);
       if (f) marker.setPopupContent(popupHTML(f));
@@ -190,24 +167,25 @@ const MapView = (() => {
 
   function filterVisible(visibleIds) {
     markers.forEach((marker, id) => {
-      if (visibleIds.has(id)) {
-        if (!map.hasLayer(marker)) marker.addTo(map);
-      } else if (map.hasLayer(marker)) {
-        map.removeLayer(marker);
-      }
+      const shouldShow = visibleIds.has(id);
+      const isShown = map.hasLayer(marker);
+      if (shouldShow && !isShown) marker.addTo(map);
+      else if (!shouldShow && isShown) map.removeLayer(marker);
     });
     fitToVisibleMarkers();
   }
 
   function fitToVisibleMarkers() {
-    const visibleMarkers = Array.from(markers.values()).filter(m => map.hasLayer(m));
-    const group = L.featureGroup([...visibleMarkers, ...(userMarker ? [userMarker] : [])]);
-    if (group.getLayers().length > 0) {
-      try {
-        map.flyToBounds(group.getBounds(), { padding: [60, 60], duration: 0.6, maxZoom: 15 });
-      } catch (e) {
-        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-      }
+    const layers = [];
+    markers.forEach(m => { if (map.hasLayer(m)) layers.push(m); });
+    if (userMarker) layers.push(userMarker);
+    if (layers.length === 0) return;
+
+    try {
+      const group = L.featureGroup(layers);
+      map.flyToBounds(group.getBounds(), { padding: [60, 60], duration: 0.6, maxZoom: 15 });
+    } catch {
+      map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
     }
   }
 
@@ -257,31 +235,28 @@ const MapView = (() => {
     map.flyTo(userMarker.getLatLng(), Math.max(map.getZoom(), 15), { duration: 0.6 });
   }
 
-  function invalidateSize() { map.invalidateSize(); }
-
   return {
     rebuild, updatePopups, filterVisible, highlight, flyTo,
-    fitToVisibleMarkers, setUserLocation, flyToUser, invalidateSize
+    fitToVisibleMarkers, setUserLocation, flyToUser,
+    invalidateSize: () => map.invalidateSize(),
   };
 })();
 
-// -------------- List --------------
+// --- List ---
 const ListView = (() => {
-  const listEl  = $('#list');
-  const countEl = $('#stat-count');
-  const labelEl = $('#stat-filtered');
-  const metaEl  = $('#source-meta');
-  const fabCountEl = $('#fab-list-count');
+  const listEl    = $('#list');
+  const countEl   = $('#stat-count');
+  const labelEl   = $('#stat-filtered');
+  const metaEl    = $('#source-meta');
+  const fabCount  = $('#fab-list-count');
 
   function filtered() {
     const q = state.search.trim().toLowerCase();
-    let list = state.pharmacies.filter(f => {
+    const list = state.pharmacies.filter(f => {
       if (state.filter !== 'all' && f.zone !== state.filter) return false;
       if (q && !(f.name.toLowerCase().includes(q) || f.address.toLowerCase().includes(q))) return false;
       return true;
     });
-
-    // Si tenemos ubicación del usuario, ordenamos por distancia.
     if (state.userLocation) {
       list.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
     }
@@ -290,34 +265,24 @@ const ListView = (() => {
 
   function cardHTML(f, idx) {
     const color = ZONE_COLORS[f.zone] || DEFAULT_COLOR;
-    const invalidCoords = !hasValidCoords(f);
+    const invalid = !hasValidCoords(f);
 
     const distHtml = f.distance != null
       ? `<span class="pharma-distance">${formatDistance(f.distance)}</span>`
       : `<div class="pharma-num">Nº ${String(idx + 1).padStart(2, '0')}</div>`;
 
-    // Aviso simple para el usuario final. Sin tecnicismos: la dirección
-    // está en la card, pero el mapa no la puede ubicar.
-    const warnHtml = invalidCoords
+    const warnHtml = invalid
       ? `<div class="pharma-warn">No se puede mostrar en el mapa porque la dirección no se pudo ubicar. Revisá la dirección o llamá antes de ir.</div>`
       : '';
 
-    // El botón "Ir" abre Google Maps con la lat/lng — si son inválidas
-    // mandaríamos al usuario al medio del océano, así que lo deshabilitamos.
-    const goBtn = invalidCoords
-      ? `<span class="pharma-btn disabled" aria-disabled="true" title="Ubicación no disponible">
-           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-           Sin ubicación
-         </span>`
-      : `<a class="pharma-btn" target="_blank" rel="noopener"
-            href="https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}"
-            onclick="event.stopPropagation()">
-           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-           Ir
-         </a>`;
+    const ariaLabel = `${f.name}, ${f.address}, zona ${f.zone}`;
+    const activeCls = state.activeId === f.id ? 'active' : '';
+    const invalidCls = invalid ? 'no-coords' : '';
 
     return `
-      <article class="pharma ${invalidCoords ? 'no-coords' : ''} ${state.activeId === f.id ? 'active' : ''}" data-id="${f.id}">
+      <article class="pharma ${invalidCls} ${activeCls}"
+               data-id="${f.id}" tabindex="0" role="button"
+               aria-label="${escapeHtml(ariaLabel)}">
         <div class="pharma-head">
           <div class="pharma-name">${escapeHtml(f.name)}</div>
           ${distHtml}
@@ -330,21 +295,18 @@ const ListView = (() => {
             ${escapeHtml(f.zone)}
           </span>
           <div class="pharma-actions">
-            <a class="pharma-btn call" href="tel:${cleanPhone(f.phone)}" onclick="event.stopPropagation()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              ${escapeHtml(f.phone)}
-            </a>
-            ${goBtn}
+            ${callButton(f.phone, f.phone)}
+            ${goButton(f, 'Ir')}
           </div>
         </div>
       </article>`;
   }
 
-  function render(onSelect) {
+  function render() {
     const list = filtered();
     countEl.textContent = list.length;
     labelEl.textContent = state.filter === 'all' ? 'farmacias' : state.filter;
-    fabCountEl.textContent = list.length;
+    fabCount.textContent = list.length;
 
     if (state.pharmacies.length === 0) return;
 
@@ -354,11 +316,6 @@ const ListView = (() => {
     }
 
     listEl.innerHTML = list.map(cardHTML).join('');
-    listEl.querySelectorAll('.pharma').forEach(el => {
-      el.addEventListener('click', () => {
-        onSelect(Number(el.dataset.id), { fromList: true });
-      });
-    });
   }
 
   function setMeta(meta) {
@@ -396,52 +353,57 @@ const ListView = (() => {
     if (active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  return { render, setMeta, showError, showLoading, scrollToActive, filtered };
+  // Event delegation: un solo listener para click + keyboard activation
+  function bindActivation(onSelect) {
+    const activate = (card) => {
+      if (!card) return;
+      onSelect(Number(card.dataset.id), { fromList: true });
+    };
+    listEl.addEventListener('click', (e) => {
+      if (e.target.closest('[data-stop]')) return;   // botones internos (llamar / ir)
+      activate(e.target.closest('.pharma'));
+    });
+    listEl.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const card = e.target.closest('.pharma');
+      if (!card || document.activeElement !== card) return;
+      e.preventDefault();
+      activate(card);
+    });
+  }
+
+  return { render, setMeta, showError, showLoading, scrollToActive, filtered, bindActivation };
 })();
 
-// -------------- Bottom sheet (mobile) --------------
+// --- Bottom sheet (mobile) ---
 const BottomSheet = (() => {
-  /**
-   * En mobile el sidebar se comporta como un bottom sheet con 3 estados.
-   * El usuario puede:
-   *   - arrastrar el handle para cambiar de estado,
-   *   - tocar una farmacia (la lleva a peek y abre el mapa),
-   *   - tocar el FAB "Ver lista" (lo expande).
-   */
   const sidebar = $('#sidebar');
   const handle = $('#sheet-handle');
 
   function setState(newState) {
     if (!['expanded', 'peek', 'hidden'].includes(newState)) return;
     sidebar.dataset.state = newState;
-    // Cuando cambia el layout, avisar al mapa para recalcular tiles.
     setTimeout(() => MapView.invalidateSize(), 350);
   }
+  const currentState = () => sidebar.dataset.state || 'expanded';
 
-  function currentState() { return sidebar.dataset.state || 'expanded'; }
-
-  // --- Gesture handling ---
   let startY = 0;
   let startTransform = 0;
   let dragging = false;
-  let sheetHeight = 0;
 
   function onPointerDown(e) {
     if (!isMobile()) return;
     dragging = true;
     sidebar.classList.add('dragging');
     startY = e.touches ? e.touches[0].clientY : e.clientY;
-    sheetHeight = sidebar.getBoundingClientRect().height;
-    const t = new DOMMatrix(getComputedStyle(sidebar).transform);
-    startTransform = t.m42; // componente translateY
+    startTransform = new DOMMatrix(getComputedStyle(sidebar).transform).m42;
     e.preventDefault();
   }
 
   function onPointerMove(e) {
     if (!dragging) return;
     const y = e.touches ? e.touches[0].clientY : e.clientY;
-    const delta = y - startY;
-    let newTransform = Math.max(0, startTransform + delta);
+    const newTransform = Math.max(0, startTransform + (y - startY));
     sidebar.style.transform = `translateY(${newTransform}px)`;
   }
 
@@ -449,23 +411,14 @@ const BottomSheet = (() => {
     if (!dragging) return;
     dragging = false;
     sidebar.classList.remove('dragging');
-    sidebar.style.transform = '';   // deja que CSS vuelva a manejar el estado
+    sidebar.style.transform = '';
 
-    // Snap al estado más cercano, basándose en dónde quedó el top del sheet.
-    const rect = sidebar.getBoundingClientRect();
-    const viewportH = window.innerHeight;
-    const topFromViewport = rect.top;
-
-    // Si el sheet está en el tercio superior: expanded
-    // Si está en el medio: peek
-    // Si está muy abajo: hidden
-    if (topFromViewport < viewportH * 0.35) {
-      setState('expanded');
-    } else if (topFromViewport < viewportH * 0.78) {
-      setState('peek');
-    } else {
-      setState('hidden');
-    }
+    // Snap al estado más cercano según dónde quedó el top del sheet
+    const topFromViewport = sidebar.getBoundingClientRect().top;
+    const vh = window.innerHeight;
+    if (topFromViewport < vh * 0.35)       setState('expanded');
+    else if (topFromViewport < vh * 0.78)  setState('peek');
+    else                                    setState('hidden');
   }
 
   handle.addEventListener('touchstart', onPointerDown, { passive: false });
@@ -473,7 +426,6 @@ const BottomSheet = (() => {
   handle.addEventListener('touchend', onPointerUp);
   handle.addEventListener('touchcancel', onPointerUp);
 
-  // Click en el handle: ciclar entre estados
   handle.addEventListener('click', () => {
     if (!isMobile()) return;
     const next = { expanded: 'peek', peek: 'hidden', hidden: 'expanded' };
@@ -483,31 +435,67 @@ const BottomSheet = (() => {
   return { setState, currentState };
 })();
 
-// -------------- Geolocation --------------
+// --- Distance helpers (top-level: usados por Geo y por loadData) ---
+function computeDistances() {
+  if (!state.userLocation) {
+    state.pharmacies.forEach(f => { f.distance = null; });
+    return;
+  }
+  const { lat, lng } = state.userLocation;
+  state.pharmacies.forEach(f => {
+    f.distance = hasValidCoords(f) ? haversine(lat, lng, f.lat, f.lng) : null;
+  });
+}
+
+function refreshAfterLocationChange() {
+  computeDistances();
+  const byId = new Map(state.pharmacies.map(p => [p.id, p]));
+  MapView.updatePopups(byId);
+  ListView.render();
+}
+
+// --- Geolocation ---
 const Geo = (() => {
   const btn = $('#btn-locate');
   let watchId = null;
 
-  function setActive(active) {
+  const setActive = (active) => {
     btn.setAttribute('aria-pressed', active ? 'true' : 'false');
     btn.title = active ? 'Ocultar mi ubicación' : 'Mostrar mi ubicación';
-  }
-
-  function setLoading(loading) {
+  };
+  const setLoading = (loading) => {
     btn.classList.toggle('locating', loading);
     btn.disabled = loading;
+  };
+
+  function applyPosition(pos) {
+    state.userLocation = {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
+      accuracy: pos.coords.accuracy,
+    };
+    MapView.setUserLocation(state.userLocation);
+    refreshAfterLocationChange();
   }
 
-  function computeDistances() {
-    if (!state.userLocation) {
-      state.pharmacies.forEach(f => { f.distance = null; });
-      return;
-    }
-    const { lat, lng } = state.userLocation;
-    state.pharmacies.forEach(f => {
-      // Farmacias sin coords válidas no tienen distancia calculable
-      f.distance = hasValidCoords(f) ? haversine(lat, lng, f.lat, f.lng) : null;
-    });
+  function startWatch() {
+    watchId = navigator.geolocation.watchPosition(
+      (p) => {
+        const prev = state.userLocation;
+        const moved = !prev || haversine(prev.lat, prev.lng, p.coords.latitude, p.coords.longitude) >= POS_REFRESH_THRESHOLD_M;
+        if (!moved) {
+          // Misma posición real: actualizamos accuracy en silencio
+          state.userLocation = {
+            ...state.userLocation,
+            accuracy: p.coords.accuracy,
+          };
+          return;
+        }
+        applyPosition(p);
+      },
+      () => { /* ignoramos errores transitorios del watch */ },
+      { enableHighAccuracy: true, maximumAge: 60_000, timeout: 30_000 }
+    );
   }
 
   function enable() {
@@ -520,46 +508,12 @@ const Geo = (() => {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        state.userLocation = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-        };
-        state.locating = true;
         setLoading(false);
         setActive(true);
-
-        MapView.setUserLocation(state.userLocation);
-        computeDistances();
-
-        // Actualizar popups con distancias
-        const byId = new Map(state.pharmacies.map(p => [p.id, p]));
-        MapView.updatePopups(byId);
-
-        ListView.render(selectPharmacy);
-
-        // Ajustar vista para incluir al usuario y las farmacias visibles
+        applyPosition(pos);
         MapView.fitToVisibleMarkers();
-
         Toast.show('Ubicación activa · lista ordenada por cercanía');
-
-        // Seguir actualizando la posición
-        watchId = navigator.geolocation.watchPosition(
-          (p) => {
-            state.userLocation = {
-              lat: p.coords.latitude,
-              lng: p.coords.longitude,
-              accuracy: p.coords.accuracy,
-            };
-            MapView.setUserLocation(state.userLocation);
-            computeDistances();
-            const byId2 = new Map(state.pharmacies.map(pp => [pp.id, pp]));
-            MapView.updatePopups(byId2);
-            ListView.render(selectPharmacy);
-          },
-          () => { /* ignoramos errores de watch */ },
-          { enableHighAccuracy: true, maximumAge: 60_000, timeout: 30_000 }
-        );
+        startWatch();
       },
       (err) => {
         setLoading(false);
@@ -581,47 +535,29 @@ const Geo = (() => {
       watchId = null;
     }
     state.userLocation = null;
-    state.locating = false;
     setActive(false);
     MapView.setUserLocation(null);
-    computeDistances();
-    const byId = new Map(state.pharmacies.map(p => [p.id, p]));
-    MapView.updatePopups(byId);
-    ListView.render(selectPharmacy);
+    refreshAfterLocationChange();
     Toast.show('Ubicación desactivada');
   }
 
-  function toggle() {
-    if (state.userLocation) {
-      disable();
-    } else {
-      enable();
-    }
-  }
+  const toggle = () => state.userLocation ? disable() : enable();
 
   function recomputeForNewData() {
-    // Cuando se refrescan los datos, recomputamos distancias si ya
-    // teníamos la ubicación del usuario.
-    if (state.userLocation) {
-      computeDistances();
-    }
+    if (state.userLocation) computeDistances();
   }
 
+  // Click: si ya hay ubicación, centra. Si no, la activa.
   btn.addEventListener('click', () => {
-    // Doble uso: si ya está activo y el usuario toca, centramos el mapa en él
-    // (comportamiento típico de apps tipo Google Maps)
-    if (state.userLocation) {
-      MapView.flyToUser();
-    } else {
-      toggle();
-    }
+    if (state.userLocation) MapView.flyToUser();
+    else toggle();
   });
 
-  // Long-press para desactivar
+  // Long-press (700ms) para desactivar
   let pressTimer;
   btn.addEventListener('pointerdown', () => {
     if (!state.userLocation) return;
-    pressTimer = setTimeout(() => disable(), 700);
+    pressTimer = setTimeout(disable, 700);
   });
   btn.addEventListener('pointerup', () => clearTimeout(pressTimer));
   btn.addEventListener('pointerleave', () => clearTimeout(pressTimer));
@@ -629,34 +565,25 @@ const Geo = (() => {
   return { enable, disable, toggle, recomputeForNewData };
 })();
 
-// -------------- Selection --------------
+// --- Selection (top-level: usado por MapView y ListView) ---
 function selectPharmacy(id, opts = {}) {
   const f = state.pharmacies.find(p => p.id === id);
   if (!f) return;
   state.activeId = id;
-
   MapView.highlight(id);
 
-  const canShowOnMap = hasValidCoords(f);
-
   if (opts.fromList) {
-    if (canShowOnMap) {
+    if (hasValidCoords(f)) {
       MapView.flyTo(f);
-      if (isMobile()) {
-        BottomSheet.setState('hidden');   // dejo ver el mapa
-      }
+      if (isMobile()) BottomSheet.setState('hidden');
     } else {
-      // No tiene sentido volar el mapa a un punto inválido. Avisamos al
-      // usuario y mantenemos la lista visible para que vea el detalle.
       Toast.show('Esta farmacia no se puede mostrar en el mapa', { isError: true });
     }
   }
 
-  ListView.render(selectPharmacy);
+  ListView.render();
 
   if (opts.fromMarker) {
-    // Si vengo de un tap en el mapa en mobile, subo un poquito el sheet
-    // para que vea la tarjeta pero sin tapar todo el mapa.
     if (isMobile() && BottomSheet.currentState() === 'hidden') {
       BottomSheet.setState('peek');
     }
@@ -664,7 +591,7 @@ function selectPharmacy(id, opts = {}) {
   }
 }
 
-// -------------- Filters --------------
+// --- Filters ---
 function setupFilters() {
   $('#zones').addEventListener('click', (e) => {
     const btn = e.target.closest('.zone-chip');
@@ -673,20 +600,20 @@ function setupFilters() {
     btn.classList.add('active');
     state.filter = btn.dataset.zone;
 
-    const visible = new Set(ListView.filtered().map(f => f.id));
-    MapView.filterVisible(visible);
-    ListView.render(selectPharmacy);
+    const visibleList = ListView.filtered();
+    MapView.filterVisible(new Set(visibleList.map(f => f.id)));
+    ListView.render();
   });
 
   let searchTimer;
   $('#search').addEventListener('input', (e) => {
     state.search = e.target.value;
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => ListView.render(selectPharmacy), 120);
+    searchTimer = setTimeout(() => ListView.render(), 120);
   });
 }
 
-// -------------- Clock --------------
+// --- Clock ---
 function setupClock() {
   const el = $('#clock-time');
   function tick() {
@@ -701,34 +628,28 @@ function setupClock() {
     el.textContent = `${date} · ${time}`;
   }
   tick();
-  setInterval(tick, 30000);
+  setInterval(tick, 30_000);
 }
 
-// -------------- Misc UI wiring --------------
+// --- Misc UI wiring ---
 function setupMiscUI() {
-  $('#banner-close').addEventListener('click', (e) => e.target.parentElement.remove());
+  $('#banner-close')?.addEventListener('click', (e) => e.target.parentElement.remove());
   $('#fab-list').addEventListener('click', () => BottomSheet.setState('expanded'));
 
-  // En mobile, si el usuario scrollea arriba en la lista cuando ya está en
-  // expanded, cuando vuelve a tocar el mapa queremos que colapse.
-  // Escuchamos click en el mapa para colapsar si sheet está expanded:
+  // Tap en el mapa colapsa el sheet si estaba expandido (UX tipo Google Maps)
   $('#map').addEventListener('click', () => {
     if (isMobile() && BottomSheet.currentState() === 'expanded') {
       BottomSheet.setState('peek');
     }
   }, true);
 
-  // Recomputar layout al girar/resizear
   window.addEventListener('resize', () => {
     MapView.invalidateSize();
-    if (!isMobile()) {
-      // Al volver a desktop, reseteamos el estado del sheet
-      $('#sidebar').dataset.state = 'expanded';
-    }
+    if (!isMobile()) $('#sidebar').dataset.state = 'expanded';
   });
 }
 
-// -------------- Data loading --------------
+// --- Data loading ---
 async function loadData({ fresh = false } = {}) {
   const btn = $('#btn-refresh');
   btn.disabled = true;
@@ -736,21 +657,17 @@ async function loadData({ fresh = false } = {}) {
   if (fresh) ListView.showLoading('Re-scrapeando colfarmalp.org.ar…');
 
   try {
-	const url = 'data/farmacias.json';
-    const r = await fetch(url);
+    const r = await fetch(DATA_URL);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = await r.json();
     if (data.error) throw new Error(data.error);
 
     state.pharmacies = data.pharmacies.map((p, i) => ({ ...p, id: i, distance: null }));
-    state.meta = data;
-
-    // Si había ubicación activa, recomputar distancias.
     Geo.recomputeForNewData();
 
     ListView.setMeta(data);
     MapView.rebuild(state.pharmacies, selectPharmacy);
-    ListView.render(selectPharmacy);
+    ListView.render();
 
     if (fresh) Toast.show(`✓ ${data.count} farmacias actualizadas`);
   } catch (err) {
@@ -761,17 +678,16 @@ async function loadData({ fresh = false } = {}) {
   }
 }
 
-// -------------- Init --------------
+// --- Init ---
 function init() {
   setupFilters();
   setupClock();
   setupMiscUI();
+  ListView.bindActivation(selectPharmacy);
 
   $('#btn-refresh').addEventListener('click', () => loadData({ fresh: true }));
 
-  // En mobile arrancamos con el sheet en "peek" para que se vea el mapa
   if (isMobile()) {
-    // Esperamos un tick para que el layout esté listo
     requestAnimationFrame(() => BottomSheet.setState('peek'));
   }
 
