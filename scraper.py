@@ -1,26 +1,15 @@
-"""
-scraper.py — Scrapea farmacias de turno desde colfarmalp.org.ar.
+"""scraper.py — Scrapea farmacias de turno desde colfarmalp.org.ar.
 
-La página NO tiene API pública, así que parseamos su HTML con BeautifulSoup.
-
-Selectores usados (basados en la estructura actual del sitio):
-    .content.farmacias h1 > span        → timestamp publicado
-    .turnos > .tr  (salvo los de .thead) → una fila por farmacia
-        td[0]  → nombre        (quita <span>Farmacia</span>)
-        td[1]  → dirección     (quita <span>Dirección</span>)
-        td[2]  → zona          (quita <span>Zona</span>)
-        td[3]  → teléfono      (quita <span>Teléfono</span>)
-        td[4] a[href]          → URL Google Maps con ?destination=lat,lng
-    .turneros a[href$='.pdf']            → PDFs del turnero por zona
-
-Si cambia la estructura del sitio, ajustá `parse_html()`.
+El sitio no tiene API: parseamos HTML con BeautifulSoup. Si cambia la
+estructura, ajustar `parse_html()`.
 """
 
 from __future__ import annotations
 
 import re
+import threading
 import time
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Optional
 
@@ -31,7 +20,6 @@ from bs4 import BeautifulSoup, Tag
 SOURCE_URL = "https://www.colfarmalp.org.ar/turnos-la-plata/"
 REQUEST_TIMEOUT = 20
 
-# User-Agent realista; algunos sitios bloquean el default de requests
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -41,8 +29,6 @@ USER_AGENT = (
 _COORD_RE = re.compile(r"destination=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)")
 _WS_RE = re.compile(r"\s+")
 
-
-# -------- Data classes -------------------------------------------------------
 
 @dataclass
 class Pharmacy:
@@ -59,7 +45,7 @@ class Pharmacy:
 
 @dataclass
 class ScrapeResult:
-    timestamp: str           # El que publica el sitio, ej. "21/4/2026 a las: 18:27 horas"
+    timestamp: str           # tal cual lo publica el sitio
     scraped_at: str          # ISO-8601 con timezone local
     source: str
     pharmacies: list[Pharmacy] = field(default_factory=list)
@@ -76,10 +62,8 @@ class ScrapeResult:
         }
 
 
-# -------- Parsing ------------------------------------------------------------
-
 def _clean_td(td: Tag) -> str:
-    """Texto de un .td sin los <span> de etiqueta y con espacios normalizados."""
+    """Texto de un .td sin sus <span> de etiqueta y con whitespace normalizado."""
     copy = BeautifulSoup(str(td), "html.parser")
     for s in copy.find_all("span"):
         s.decompose()
@@ -88,9 +72,7 @@ def _clean_td(td: Tag) -> str:
 
 def _parse_coords(href: str) -> Optional[tuple[float, float]]:
     m = _COORD_RE.search(href)
-    if not m:
-        return None
-    return float(m.group(1)), float(m.group(2))
+    return (float(m.group(1)), float(m.group(2))) if m else None
 
 
 def _parse_row(row: Tag) -> Optional[Pharmacy]:
@@ -118,16 +100,13 @@ def _parse_row(row: Tag) -> Optional[Pharmacy]:
 
 
 def parse_html(html: str) -> ScrapeResult:
-    """Parsea el HTML de la página de turnos y devuelve un ScrapeResult."""
     soup = BeautifulSoup(html, "html.parser")
 
-    # Timestamp publicado por el sitio
     timestamp = ""
     h1 = soup.select_one(".content.farmacias h1")
     if h1 and (span := h1.select_one("span")):
         timestamp = span.get_text(strip=True)
 
-    # Farmacias: todas las .tr dentro de .turnos que NO estén en un .thead
     pharmacies: list[Pharmacy] = []
     if (turnos := soup.select_one(".turnos")):
         for row in turnos.find_all("div", class_="tr"):
@@ -136,7 +115,6 @@ def parse_html(html: str) -> ScrapeResult:
             if (ph := _parse_row(row)):
                 pharmacies.append(ph)
 
-    # PDFs del turnero por zona
     pdfs = [
         {
             "label": _WS_RE.sub(" ", a.get_text(" ", strip=True)).strip(),
@@ -154,16 +132,12 @@ def parse_html(html: str) -> ScrapeResult:
     )
 
 
-# -------- Fetch + cache ------------------------------------------------------
-
 class Scraper:
-    """
-    Scraper con cache en memoria.
+    """Scrape + cache en memoria. Thread-safe.
 
-    Uso:
-        scraper = Scraper(cache_seconds=300)
-        data = scraper.get()            # usa cache si es fresca
-        data = scraper.get(force=True)  # fuerza re-scrape
+    >>> sc = Scraper(cache_seconds=300)
+    >>> data = sc.get()              # usa cache si está fresca
+    >>> data = sc.get(force=True)    # ignora la cache
     """
 
     def __init__(self, url: str = SOURCE_URL, cache_seconds: int = 300):
@@ -171,6 +145,7 @@ class Scraper:
         self.cache_seconds = cache_seconds
         self._cache: Optional[ScrapeResult] = None
         self._cached_at: float = 0.0
+        self._lock = threading.Lock()
 
     def _fetch(self) -> str:
         r = requests.get(
@@ -186,19 +161,26 @@ class Scraper:
         r.encoding = r.apparent_encoding or "utf-8"
         return r.text
 
+    def _is_fresh(self) -> bool:
+        return (
+            self._cache is not None
+            and (time.time() - self._cached_at) < self.cache_seconds
+        )
+
     def get(self, force: bool = False) -> ScrapeResult:
-        now = time.time()
-        if not force and self._cache and (now - self._cached_at < self.cache_seconds):
+        if not force and self._is_fresh():
+            return self._cache  # type: ignore[return-value]
+
+        # Doble check con lock para evitar dobles fetches concurrentes
+        with self._lock:
+            if not force and self._is_fresh():
+                return self._cache  # type: ignore[return-value]
+            self._cache = parse_html(self._fetch())
+            self._cached_at = time.time()
             return self._cache
-        html = self._fetch()
-        result = parse_html(html)
-        self._cache = result
-        self._cached_at = now
-        return result
 
     @property
     def cache_age(self) -> Optional[float]:
-        """Segundos desde el último scrape, o None si nunca se hizo."""
-        if not self._cache:
+        if self._cache is None:
             return None
         return time.time() - self._cached_at
