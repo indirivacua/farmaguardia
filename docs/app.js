@@ -46,17 +46,21 @@ function formatDistance(meters) {
   return `${(meters / 1000).toFixed(meters < 10000 ? 1 : 0)} km`;
 }
 
-// Filtra lat/lng inválidas. El caso clásico: el sitio publica una URL de
-// Google Maps con `destination=0,0` cuando no tenía coords reales, y la
-// farmacia terminaría en el medio del océano arrastrando todo el viewport.
+// Filtra lat/lng inválidas. El sitio del Colegio a veces publica coords rotas:
+// `destination=0,0` (sin dato) o valores cargados mal (p. ej. una longitud en
+// el campo de latitud), que caen en el océano y arrastran todo el viewport.
+// En vez del rango global usamos un bounding box del Gran La Plata: cubre las
+// tres zonas (La Plata / Norte / Los Hornos) y descarta cualquier cosa afuera.
+const LP_BOUNDS = { latMin: -35.10, latMax: -34.75, lngMin: -58.20, lngMax: -57.75 };
 function hasValidCoords(f) {
   const lat = Number(f.lat);
   const lng = Number(f.lng);
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
   if (lat === 0 || lng === 0) return false;
-  if (lat < -90 || lat > 90) return false;
-  if (lng < -180 || lng > 180) return false;
-  return true;
+  return (
+    lat >= LP_BOUNDS.latMin && lat <= LP_BOUNDS.latMax &&
+    lng >= LP_BOUNDS.lngMin && lng <= LP_BOUNDS.lngMax
+  );
 }
 
 // --- State ---
@@ -90,10 +94,14 @@ function callButton(phone, label) {
   return `<a class="pharma-btn call" href="tel:${cleanPhone(phone)}" data-stop>${SVG_PHONE}${escapeHtml(label)}</a>`;
 }
 function goButton(f, label) {
-  if (!hasValidCoords(f)) {
-    return `<span class="pharma-btn disabled" aria-disabled="true" title="Ubicación no disponible">${SVG_PIN}Sin ubicación</span>`;
+  if (hasValidCoords(f)) {
+    return `<a class="pharma-btn" target="_blank" rel="noopener" data-stop href="https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}">${SVG_PIN}${escapeHtml(label)}</a>`;
   }
-  return `<a class="pharma-btn" target="_blank" rel="noopener" data-stop href="https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}">${SVG_PIN}${escapeHtml(label)}</a>`;
+  // Coords no confiables (sitio cargó mal el dato): en vez de mandar al océano
+  // o deshabilitar el botón, buscamos por nombre + dirección y dejamos que
+  // Google geocodifique. La farmacia es real, solo le falta la coord.
+  const q = encodeURIComponent(`${f.name}, ${f.address}, La Plata, Argentina`);
+  return `<a class="pharma-btn" target="_blank" rel="noopener" data-stop href="https://www.google.com/maps/search/?api=1&query=${q}">${SVG_PIN}${escapeHtml(label)}</a>`;
 }
 
 // --- Map ---
