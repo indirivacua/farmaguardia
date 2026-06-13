@@ -1,168 +1,208 @@
 {
-  "timestamp": "13/6/2026 a las: 8:24 horas",
-  "scraped_at": "2026-06-13T11:24:13+00:00",
+  "timestamp": "13/6/2026 a las: 11:24 horas",
+  "scraped_at": "2026-06-13T14:24:50+00:00",
   "source": "https://www.colfarmalp.org.ar/turnos-la-plata/",
-  "count": 20,
+  "count": 25,
   "pharmacies": [
     {
-      "name": "ASPRA",
-      "address": "524 esq 8",
+      "name": "SPICOLI",
+      "address": "7 nro 1554 e/ 516 y 517",
       "zone": "La Plata",
-      "phone": "4820390",
-      "lat": -34.89491,
-      "lng": -57.97901
+      "phone": "221-655-8063",
+      "lat": -34.8874854,
+      "lng": -57.9862168
     },
     {
-      "name": "GARCIA BARILATTI",
-      "address": "70 nro 1686 e/ 28 y 29",
+      "name": "VILLALBA",
+      "address": "80 NRO 157 E/ 116 Y 117",
       "zone": "La Plata",
-      "phone": "4521399",
-      "lat": -34.94973,
-      "lng": -57.95238
+      "phone": "2216017785",
+      "lat": -34.9290718,
+      "lng": -57.9108798
     },
     {
-      "name": "DEL BOSQUE S.C.S.",
-      "address": "2 esq 50 nro 896",
+      "name": "AREVALO",
+      "address": "7 nro 2010 e/ 73 y 74",
       "zone": "La Plata",
-      "phone": "4249438",
-      "lat": -34.91001,
-      "lng": -57.94464
+      "phone": "4579005",
+      "lat": -34.932462,
+      "lng": -57.92582
     },
     {
-      "name": "DEL PASEO S.C.S.",
-      "address": "Diag 80 nro 960 e/ 4 y 5",
+      "name": "RIVADULLA",
+      "address": "Pza Azcuenaga 19 y 44",
       "zone": "La Plata",
-      "phone": "4830257",
-      "lat": -34.91172,
-      "lng": -57.94848
+      "phone": "4253730",
+      "lat": -34.9212133,
+      "lng": -57.96718
     },
     {
-      "name": "FALCO",
-      "address": "137 e/43 y 44 nro 586",
+      "name": "BELGRANO S.C.S.",
+      "address": "13 esq 36 nro 199",
       "zone": "La Plata",
-      "phone": "4708361",
-      "lat": -34.93881,
-      "lng": -57.98683
+      "phone": "221-304-2021",
+      "lat": -34.90956,
+      "lng": 0.0
     },
     {
-      "name": "GUILLERMO VEGA",
-      "address": "1 esq 65 nro 1599",
+      "name": "BRUNO",
+      "address": "5 NRO 1080 ESQ. 55",
       "zone": "La Plata",
-      "phone": "4213904-4836672",
-      "lat": -34.91951,
-      "lng": -57.93002
+      "phone": "4210984",
+      "lat": -34.9152908,
+      "lng": -57.9444536
     },
     {
-      "name": "MUGLIA",
-      "address": "51 nro 1736 e/ 29 y 30",
+      "name": "DELGADO",
+      "address": "44 nro 350 esq 2",
       "zone": "La Plata",
-      "phone": "4515262",
-      "lat": -34.93673,
-      "lng": -57.97221
+      "phone": "4212820/4277779/2216011761",
+      "lat": -34.9063969,
+      "lng": -57.9502619
     },
     {
-      "name": "OROZ",
-      "address": "38 ESQ. 4 NRO 455",
+      "name": "VAINSTEIN",
+      "address": "17 esq 66",
       "zone": "La Plata",
-      "phone": "421-8920",
-      "lat": -34.90275,
-      "lng": -57.95925
+      "phone": "4510691",
+      "lat": -34.9251652,
+      "lng": -57.95869429999999
     },
     {
-      "name": "TOSTI",
-      "address": "42 nro 927 e/13 y 14",
+      "name": "BENTABERRY",
+      "address": "22 e/76 y 77 nro 2169",
       "zone": "La Plata",
-      "phone": "4210783",
-      "lat": -34.9151378,
-      "lng": -57.9644549
+      "phone": "4515282",
+      "lat": -34.94841,
+      "lng": -57.93912
     },
     {
-      "name": "SAPETTI",
-      "address": "70 NRO 803 ESQ. 11",
+      "name": "GROETZNER",
+      "address": "49 nro 2178 e/ 138 y 139",
       "zone": "La Plata",
-      "phone": "4510651",
-      "lat": -34.9331104,
-      "lng": -57.9344776
+      "phone": "4701284",
+      "lat": -34.944104,
+      "lng": -57.983522
     },
     {
-      "name": "ARGENTINA",
-      "address": "60 NRO 752 ESQ. 10",
+      "name": "GOMEZ",
+      "address": "9 Y 529 CNO. GRAL. BELGRANO",
       "zone": "La Plata",
-      "phone": "4519233",
-      "lat": -34.9237205,
-      "lng": -57.9445828
+      "phone": "4213316",
+      "lat": -57.967956,
+      "lng": -57.97467
     },
     {
-      "name": "AGOSTINO",
-      "address": "7 e/ 46 y 47 nro 705",
+      "name": "LA DOCE S.C.S.",
+      "address": "12 e/ 59 y 60 nro 1307",
       "zone": "La Plata",
-      "phone": "4210331 - 4891266",
-      "lat": -34.9122267,
-      "lng": -57.9530346
+      "phone": "4890991",
+      "lat": -34.9246778,
+      "lng": -57.9478687
     },
     {
-      "name": "SATOSTEGUI",
-      "address": "13 ESQ 85 BIS",
+      "name": "TELLO",
+      "address": "66 E/121 Y 122 nro 176",
       "zone": "La Plata",
-      "phone": "4512629",
-      "lat": -34.94715,
-      "lng": -57.91968
+      "phone": "4820550",
+      "lat": -34.91271,
+      "lng": -57.91997
     },
     {
-      "name": "GORRITI S.C.S.",
-      "address": "520 NRO 6256 E/157 Y 158",
+      "name": "MAMBLONA",
+      "address": "Diag 73 nro 1037 e/ 61 y 62",
       "zone": "La Plata",
-      "phone": "221 5639820",
-      "lat": -34.938192,
-      "lng": -58.0349317
+      "phone": "15-4354488",
+      "lat": -34.9207215,
+      "lng": -57.9381737
     },
     {
-      "name": "FARMACIA 637 ARANA S.C.S.",
-      "address": "637 Nro 729 ESQ 9 BIS",
+      "name": "MARSICO",
+      "address": "7 ESQ 41",
       "zone": "La Plata",
-      "phone": "-",
-      "lat": -34.9777816,
-      "lng": -57.8714985
+      "phone": "4229760",
+      "lat": -34.9081879,
+      "lng": -57.9589294
     },
     {
-      "name": "ALEMANIA LP S.C.S.",
-      "address": "122 Nro 2343 1/2",
+      "name": "MENEGAZ",
+      "address": "2 E/ 32 Y 33 NRO 24",
       "zone": "La Plata",
-      "phone": "2286888",
-      "lat": -34.92358,
-      "lng": -57.90507
+      "phone": "4822701",
+      "lat": -34.8963959,
+      "lng": -57.9629618
     },
     {
-      "name": "GONNET S.C.S.",
-      "address": "Cno. Gral. Belgrano nro 4030 e/ 491 y 492",
+      "name": "RODRIGUEZ MORILLO",
+      "address": "25 E/ 526 y 527",
+      "zone": "La Plata",
+      "phone": "4234743",
+      "lat": -34.91264,
+      "lng": -57.99408
+    },
+    {
+      "name": "MILONE",
+      "address": "208 e/ 517 y 518",
+      "zone": "La Plata",
+      "phone": "",
+      "lat": -34.98359,
+      "lng": -58.08927
+    },
+    {
+      "name": "SANTA ROSA",
+      "address": "Diag 74 E/ 22 y 23 nro 2770",
+      "zone": "La Plata",
+      "phone": "4510613",
+      "lat": -34.93861,
+      "lng": -57.95328
+    },
+    {
+      "name": "SOMA",
+      "address": "32 NRO 1950 ESQ. 134",
+      "zone": "La Plata",
+      "phone": "4700071",
+      "lat": -34.92621,
+      "lng": -57.99736
+    },
+    {
+      "name": "GALLI (LA PLATA)",
+      "address": "520 Nro 4904 esq 144",
+      "zone": "La Plata",
+      "phone": "2216778613",
+      "lat": -34.92571,
+      "lng": -58.02092
+    },
+    {
+      "name": "BLANCO",
+      "address": "Lacroze nro 2069 e/ 15bis y 16",
       "zone": "Norte",
-      "phone": "4717098",
-      "lat": -34.8871997,
-      "lng": -58.029803000000015
+      "phone": "4710403",
+      "lat": -34.8781635,
+      "lng": -58.03021660000002
     },
     {
-      "name": "OLIVERA",
-      "address": "av Arana e/10 y 11 nro 928",
+      "name": "VILLA ELISA",
+      "address": "42 E/ 5 y 6",
       "zone": "Norte",
-      "phone": "2216163314",
-      "lat": -34.8566388,
-      "lng": -58.0827138
+      "phone": "4733152",
+      "lat": -34.8523989,
+      "lng": -58.0782709
     },
     {
-      "name": "URBIZTONDO",
-      "address": "473 bis(ex15) e/21A (ex 22) y cno Gral Belgarno",
+      "name": "ALTOS DEL BELL S.C.S.",
+      "address": "28 ESQ 476",
       "zone": "Norte",
-      "phone": "4722829/ 4723428/ 5121856",
-      "lat": -34.8742622,
-      "lng": -58.0467584
+      "phone": "2216167475",
+      "lat": -34.8885398,
+      "lng": -58.0515386
     },
     {
-      "name": "LOS HORNOS S.C.S.",
-      "address": "60 NRO 1979",
+      "name": "GINI S.C.S.",
+      "address": "66 Nro. 2169",
       "zone": "Los Hornos",
-      "phone": "4509990",
-      "lat": -34.9471367,
-      "lng": -57.9731908
+      "phone": "221 15-4200210",
+      "lat": -34.955627,
+      "lng": -57.970198
     }
   ],
   "pdfs": [
