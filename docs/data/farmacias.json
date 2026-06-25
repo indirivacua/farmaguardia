@@ -1,192 +1,200 @@
 {
-  "timestamp": "25/6/2026 a las: 5:31 horas",
-  "scraped_at": "2026-06-25T08:31:10+00:00",
+  "timestamp": "25/6/2026 a las: 8:49 horas",
+  "scraped_at": "2026-06-25T11:49:29+00:00",
   "source": "https://www.colfarmalp.org.ar/turnos-la-plata/",
-  "count": 23,
+  "count": 24,
   "pharmacies": [
     {
-      "name": "ANSELMINO",
-      "address": "71 esq 5 nro 501",
+      "name": "CARUSO S.C.S.",
+      "address": "6 ESQ. 44",
       "zone": "La Plata",
-      "phone": "4214474",
-      "lat": -34.92829,
-      "lng": -57.92717
+      "phone": "4219390",
+      "lat": -34.9097345,
+      "lng": -57.9541789
     },
     {
-      "name": "AVENIDA OLMOS",
-      "address": "44 e/ 201 y 202",
+      "name": "CRIVARO",
+      "address": "10 nro 1502 esq 63",
       "zone": "La Plata",
-      "phone": "4963822",
-      "lat": -34.99911,
-      "lng": -58.0528
+      "phone": "4573957",
+      "lat": -34.9262363,
+      "lng": -57.9409811
     },
     {
-      "name": "BALDO",
-      "address": "DIAG. 80 y 45 nro 788",
+      "name": "DEL VALLE",
+      "address": "39 esq 24 nro 1450",
       "zone": "La Plata",
-      "phone": "4213607",
-      "lat": -34.90718,
-      "lng": -57.94918
+      "phone": "4795840",
+      "lat": -34.922495,
+      "lng": -57.978367
     },
     {
-      "name": "BRUNO",
-      "address": "5 NRO 1080 ESQ. 55",
+      "name": "DELLA CASA",
+      "address": "18 e/37 y 38 nro 293",
       "zone": "La Plata",
-      "phone": "4210984",
-      "lat": -34.9152908,
-      "lng": -57.9444536
+      "phone": "4229440",
+      "lat": -34.91577,
+      "lng": -57.9737
     },
     {
-      "name": "CATALA",
-      "address": "7 esq 520bis nro 1160",
+      "name": "QUANTIN",
+      "address": "27 nro 739 e/46 y 47",
       "zone": "La Plata",
-      "phone": "588-5984",
-      "lat": -34.8908922,
-      "lng": -57.9819991
+      "phone": "4796263",
+      "lat": -34.93167,
+      "lng": -57.97301
     },
     {
-      "name": "GARCIA BARILATTI",
-      "address": "70 nro 1686 e/ 28 y 29",
+      "name": "LANDIVAR",
+      "address": "44 e/147 y 148",
       "zone": "La Plata",
-      "phone": "4521399",
-      "lat": -34.94973,
-      "lng": -57.95238
+      "phone": "4708590",
+      "lat": -34.9476783,
+      "lng": -57.9957362
     },
     {
-      "name": "ABDALA LA PLATA S.C.S.",
-      "address": "2 nro 190 1/2 e/35 y 36",
+      "name": "GUILLERMO VEGA",
+      "address": "1 esq 65 nro 1599",
       "zone": "La Plata",
-      "phone": "4891773",
-      "lat": -34.8989311,
-      "lng": -57.9594673
+      "phone": "4213904-4836672",
+      "lat": -34.91951,
+      "lng": -57.93002
     },
     {
-      "name": "GROSSO",
-      "address": "86 nro 606 esq 7",
+      "name": "PIZZANO",
+      "address": "27 e/ 60 y 61 Nº 1351",
       "zone": "La Plata",
-      "phone": "4866128",
-      "lat": -34.9424068,
-      "lng": -57.9131883
+      "phone": "4570295",
+      "lat": -34.9396824,
+      "lng": -57.9620722
     },
     {
-      "name": "INGLESA DE LA PLATA",
-      "address": "47 nro 634 e/ 7 y 8",
+      "name": "LA ESTRELLA",
+      "address": "12 esq. 48 nro 848",
       "zone": "La Plata",
-      "phone": "4213400",
-      "lat": -34.9138253,
-      "lng": -57.9527392
+      "phone": "4218244",
+      "lat": -34.91833,
+      "lng": -57.9561
     },
     {
-      "name": "LOZANO",
-      "address": "13 e/33 y 34 nro 83",
+      "name": "FRENCH DE LA PLATA S.C.S.",
+      "address": "122 E/ 35 Y 36 NRO 181",
       "zone": "La Plata",
-      "phone": "4259991",
-      "lat": -34.9068574,
-      "lng": -57.97334
+      "phone": "4823180",
+      "lat": -34.8894251,
+      "lng": -57.9509733
     },
     {
-      "name": "MANCUSO",
-      "address": "26 nro 2105 esq 75",
+      "name": "PAMPIN S.C.S.",
+      "address": "116 ESQ. 522",
       "zone": "La Plata",
-      "phone": "4526572",
-      "lat": -34.9513488,
-      "lng": -57.9443209
+      "phone": "4234005",
+      "lat": -34.8846876,
+      "lng": -57.97229
     },
     {
-      "name": "MARANO",
-      "address": "49 ESQ. 28 NRO 1647",
+      "name": "TIRADO",
+      "address": "Cno. MAGDALENA esq 600",
       "zone": "La Plata",
-      "phone": "4517107",
-      "lat": -34.9338017,
-      "lng": -57.9719868
+      "phone": "4865533",
+      "lat": -34.93367,
+      "lng": -57.88312
     },
     {
-      "name": "FARIMASI (Ex PARDINI)",
-      "address": "Diag 73 esq 29 nro 3387",
+      "name": "NAVICKAS",
+      "address": "7 nro 307 e/ 528 y 529",
       "zone": "La Plata",
-      "phone": "4792290 / CELU 6780160",
-      "lat": -34.92295,
-      "lng": -57.98872
+      "phone": "4228439",
+      "lat": -34.89759,
+      "lng": -57.97254
     },
     {
-      "name": "RAVASSI",
-      "address": "58 e/ 21 y 22 (esq. Diag 75)",
+      "name": "VEGA",
+      "address": "7 e/76 y 77 nro 2169",
       "zone": "La Plata",
-      "phone": "4515074",
-      "lat": -34.932763,
-      "lng": -57.9586664
+      "phone": "4521729",
+      "lat": -34.9343472,
+      "lng": -57.9237191
     },
     {
-      "name": "TROILO SCS",
-      "address": "48 esq 15 nro 999",
+      "name": "SUAME (NUEVA)",
+      "address": "41 Y 133",
       "zone": "La Plata",
-      "phone": "4246572",
-      "lat": -34.92108,
-      "lng": -57.95948
+      "phone": "221-6968888",
+      "lat": -34.93109,
+      "lng": -57.98979
     },
     {
-      "name": "SANTA LUCIA",
-      "address": "64 ESQ. 14 NRO 961",
+      "name": "CONTRERAS",
+      "address": "32 E/ 164 y 165",
       "zone": "La Plata",
-      "phone": "4519796",
-      "lat": -34.93097,
-      "lng": -57.94467
+      "phone": "458-2278",
+      "lat": -34.95492,
+      "lng": -58.02884
     },
     {
-      "name": "SCASSO",
-      "address": "3 E/ 62 Y 63 NRO 1477",
+      "name": "PAUJO S.C.S.",
+      "address": "520 E/182 Y 182BIS",
       "zone": "La Plata",
-      "phone": "4831197",
-      "lat": -34.918873,
-      "lng": -57.9351945
+      "phone": "4914626",
+      "lat": -34.9615958,
+      "lng": -58.0608538
     },
     {
-      "name": "JUAN",
-      "address": "122 esq 90",
+      "name": "VAZQUEZ",
+      "address": "19 esq 75 nro 2099",
       "zone": "La Plata",
-      "phone": "4869950",
-      "lat": -34.93018,
-      "lng": -57.8959
+      "phone": "4177571",
+      "lat": -34.94471,
+      "lng": -57.93738
     },
     {
-      "name": "LAZZA",
-      "address": "142 Nro 14 ESQ 32",
+      "name": "ALEMANIA LP S.C.S.",
+      "address": "122 Nro 2343 1/2",
       "zone": "La Plata",
-      "phone": "221-154981619",
-      "lat": -34.9337124,
-      "lng": -58.0049355
+      "phone": "2286888",
+      "lat": -34.92358,
+      "lng": -57.90507
     },
     {
-      "name": "AURORA LOPEZ S.C.S.",
-      "address": "Cantilo (473) esq 20",
+      "name": "MOUZO",
+      "address": "14 ESQ. 502",
       "zone": "Norte",
-      "phone": "4722337",
-      "lat": -34.8786331,
-      "lng": -58.0513533
+      "phone": "4840179",
+      "lat": -34.8819608,
+      "lng": -58.0115643
     },
     {
-      "name": "OLIVERA",
-      "address": "av Arana e/10 y 11 nro 928",
+      "name": "GARAY",
+      "address": "Calle 450 Nº 1691 (esq Cno. Gral. Belgrano)",
       "zone": "Norte",
-      "phone": "2216163314",
-      "lat": -34.8566388,
-      "lng": -58.0827138
+      "phone": "4801691",
+      "lat": -34.8749247,
+      "lng": -58.0774371
     },
     {
-      "name": "SULLIVAN",
-      "address": "485 E/133 Y 134",
+      "name": "URBIZTONDO",
+      "address": "473 bis(ex15) e/21A (ex 22) y cno Gral Belgarno",
       "zone": "Norte",
-      "phone": "3603375",
-      "lat": -34.8984722,
-      "lng": -58.042451400000004
+      "phone": "4722829/ 4723428/ 5121856",
+      "lat": -34.8742622,
+      "lng": -58.0467584
     },
     {
-      "name": "FERNANDEZ S.C.S.",
-      "address": "66 nro 3101 esq 157",
+      "name": "SUAREZ S.C.S.",
+      "address": "66 NRO 2709 E/ 149 Y 150",
       "zone": "Los Hornos",
-      "phone": "4505416",
-      "lat": -34.9732233,
-      "lng": -57.9893941
+      "phone": "4509364",
+      "lat": -34.9660977,
+      "lng": -57.9811574
+    },
+    {
+      "name": "GIRALDEZ",
+      "address": "68 e/140 y 141",
+      "zone": "Los Hornos",
+      "phone": "0",
+      "lat": -34.9597044,
+      "lng": -57.9732475
     }
   ],
   "pdfs": [
