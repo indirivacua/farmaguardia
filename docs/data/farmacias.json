@@ -1,6 +1,6 @@
 {
-  "timestamp": "13/7/2026 a las: 12:10 horas",
-  "scraped_at": "2026-07-13T15:10:33+00:00",
+  "timestamp": "13/7/2026 a las: 14:22 horas",
+  "scraped_at": "2026-07-13T17:22:08+00:00",
   "source": "https://www.colfarmalp.org.ar/turnos-la-plata/",
   "count": 23,
   "pharmacies": [
@@ -102,7 +102,7 @@
     },
     {
       "name": "PINHA S.C.S.",
-      "address": "47 nro 1347",
+      "address": "47 Y 22 Nro 1347",
       "zone": "La Plata",
       "phone": "4795952",
       "lat": -34.9269655,
