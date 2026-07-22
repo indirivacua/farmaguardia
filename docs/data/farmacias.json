@@ -1,200 +1,184 @@
 {
-  "timestamp": "22/7/2026 a las: 6:37 horas",
-  "scraped_at": "2026-07-22T09:37:36+00:00",
+  "timestamp": "22/7/2026 a las: 9:02 horas",
+  "scraped_at": "2026-07-22T12:02:43+00:00",
   "source": "https://www.colfarmalp.org.ar/turnos-la-plata/",
-  "count": 24,
+  "count": 22,
   "pharmacies": [
     {
-      "name": "MORACCI S.C.S.",
-      "address": "28 nro 1697 e/ 66 y 67",
+      "name": "CASALAGA",
+      "address": "14 esq 66 nro 1651",
       "zone": "La Plata",
-      "phone": "4577153",
-      "lat": -34.9464156,
-      "lng": -57.9553479
+      "phone": "4533360",
+      "lat": -34.9327006,
+      "lng": -57.941912
     },
     {
-      "name": "FARMACIA MANA SCS",
-      "address": "4 esq 57",
+      "name": "DEL PUEBLO",
+      "address": "60 nro 1767 e/ 30 y 31",
       "zone": "La Plata",
-      "phone": "4243929",
-      "lat": -34.91539,
-      "lng": -57.94161
+      "phone": "4516524",
+      "lat": -34.9425888,
+      "lng": -57.96570459999998
     },
     {
-      "name": "RIVADULLA",
-      "address": "Pza Azcuenaga 19 y 44",
+      "name": "DELLA CASA",
+      "address": "18 e/37 y 38 nro 293",
       "zone": "La Plata",
-      "phone": "4253730",
-      "lat": -34.9212133,
-      "lng": -57.96718
+      "phone": "4229440",
+      "lat": -34.91577,
+      "lng": -57.9737
     },
     {
-      "name": "DE ROSE",
-      "address": "131 esq 40 nro 399",
+      "name": "FARAH",
+      "address": "44 esq 132 nro 1853",
       "zone": "La Plata",
-      "phone": "4705716",
-      "lat": -34.93026,
-      "lng": -57.98514
+      "phone": "4706194",
+      "lat": -34.93446,
+      "lng": -57.98175
     },
     {
-      "name": "DEL NUEVO TEATRO S.C.S.",
-      "address": "51 nro 741",
+      "name": "FERRARIS",
+      "address": "av 32(532) esq 3 Tolosa",
       "zone": "La Plata",
-      "phone": "4226855",
-      "lat": -34.9179511,
-      "lng": -57.9521621
+      "phone": "4277525",
+      "lat": -34.89636,
+      "lng": -57.96545
     },
     {
-      "name": "ENTRE RIOS S.C.S.",
-      "address": "7 nro 2917",
+      "name": "HECTOR PERONI",
+      "address": "8 e/54 y 55 nro 1082",
       "zone": "La Plata",
-      "phone": "4869780",
-      "lat": -34.945584,
-      "lng": -57.9094641
+      "phone": "4821803",
+      "lat": -34.91795,
+      "lng": -57.94767
     },
     {
-      "name": "FRAGASSO",
-      "address": "72 nro 751",
+      "name": "LENOIER",
+      "address": "7 e/61 y 62 nro 1441",
       "zone": "La Plata",
-      "phone": "221-202 4990",
-      "lat": -34.93379,
-      "lng": -57.93126
+      "phone": "4210344 / 4095",
+      "lat": -34.922461,
+      "lng": -57.939752
     },
     {
-      "name": "ABDALA LA PLATA S.C.S.",
-      "address": "2 nro 190 1/2 e/35 y 36",
+      "name": "MOYANO",
+      "address": "DIAG.74 E/ 34 Y 118 NRO 100",
       "zone": "La Plata",
-      "phone": "4891773",
-      "lat": -34.8989311,
-      "lng": -57.9594673
+      "phone": "2215676208",
+      "lat": -34.8900438,
+      "lng": -57.9565061
     },
     {
-      "name": "GLOWKO",
-      "address": "58 nro 1765 e/ 30 y 31",
+      "name": "RINGUELET S.C.S.",
+      "address": "511 nro 1514 e/10 y 10 bis",
       "zone": "La Plata",
-      "phone": "4570024",
-      "lat": -34.941125,
-      "lng": -57.967956
+      "phone": "4840703",
+      "lat": -34.88574,
+      "lng": -57.99572
     },
     {
-      "name": "INTERNACIONAL",
-      "address": "3 y 47",
+      "name": "PAOLETTI",
+      "address": "23 nro 1908 e/ 71 y 71bis",
       "zone": "La Plata",
-      "phone": "0221-154388031",
-      "lat": -34.9096088,
-      "lng": -57.9478008
+      "phone": "4511423",
+      "lat": -34.9452109,
+      "lng": -57.9452739
     },
     {
-      "name": "LEYES S.C.S.",
-      "address": "26 nro 2288 e/ 78 y 79",
+      "name": "TESTA",
+      "address": "11 E/ 33 Y 34 NRO 77",
       "zone": "La Plata",
-      "phone": "4531877",
-      "lat": -34.9538233,
-      "lng": -57.9406509
+      "phone": "4270138",
+      "lat": -34.90571,
+      "lng": -57.97131
     },
     {
-      "name": "NOTTE",
-      "address": "4 ESQ. 78 Bis",
+      "name": "BREANT S.C.S.",
+      "address": "44 ESQ 21",
       "zone": "La Plata",
-      "phone": "4527929",
-      "lat": -34.93329,
-      "lng": -57.91821
+      "phone": "4707358",
+      "lat": -34.9238126,
+      "lng": -57.9698927
     },
     {
-      "name": "PROTEU S.C.S.",
-      "address": "2 esq 68",
+      "name": "SANCHEZ",
+      "address": "54 nro 1365 e/ 22 y 23",
       "zone": "La Plata",
-      "phone": "4274477",
-      "lat": -34.92294,
-      "lng": -57.92761
+      "phone": "4510186 / 4572753",
+      "lat": -34.931366,
+      "lng": -57.9629922
     },
     {
-      "name": "ROCHA S.C.S.",
-      "address": "7 y 58 nro 1249",
+      "name": "VILLANUEVA S.C.S.",
+      "address": "7 ESQ. 37 NRO 252",
       "zone": "La Plata",
-      "phone": "4210856 - 4271590",
-      "lat": -34.91931,
-      "lng": -57.94405
+      "phone": "4829022",
+      "lat": -34.90471,
+      "lng": -57.96304
     },
     {
-      "name": "VILLAMARIN",
-      "address": "15 nro 149 esq 35",
+      "name": "ZUCOLILLO",
+      "address": "48 Y 4 NRO 449",
       "zone": "La Plata",
-      "phone": "4828819",
-      "lat": -34.91061,
-      "lng": -57.97394
+      "phone": "4218291",
+      "lat": -34.91072,
+      "lng": -57.94814
     },
     {
-      "name": "AGUILAR",
-      "address": "531 esq 7 nro 1194",
+      "name": "TEMPESTA",
+      "address": "80 nro 731 e/ 9 y 10",
       "zone": "La Plata",
-      "phone": "4890229",
-      "lat": -34.9183124,
-      "lng": -57.944806099999994
+      "phone": "4536416",
+      "lat": -34.9396174,
+      "lng": -57.9224377
     },
     {
-      "name": "BONVISSUTO",
-      "address": "CALLE 64 E/123 Y 124",
+      "name": "MANCUSO CABRERA",
+      "address": "155 e/ 33 y 34",
       "zone": "La Plata",
-      "phone": "427-3791",
-      "lat": -34.90924,
-      "lng": -57.92119
+      "phone": "15-4973066",
+      "lat": -34.9476233,
+      "lng": -58.0180529
     },
     {
-      "name": "GORRITI S.C.S.",
-      "address": "520 NRO 6256 E/157 Y 158",
+      "name": "SARAVIA",
+      "address": "609 y 5 Bis",
       "zone": "La Plata",
-      "phone": "221 5639820",
-      "lat": -34.938192,
-      "lng": -58.0349317
+      "phone": "512-2506",
+      "lat": -34.95442,
+      "lng": -57.89179
     },
     {
-      "name": "BULACIO S.C.S",
-      "address": "143 ESQ 47",
-      "zone": "La Plata",
-      "phone": "221-15 3107626",
-      "lat": -34.94737,
-      "lng": -57.98897
-    },
-    {
-      "name": "MELITON",
-      "address": "485 e/ 135 y 136 nro 4254",
+      "name": "CENTRAL LA PLATA S.C.S.",
+      "address": "493 nro 1827 esq Cno Centenario",
       "zone": "Norte",
-      "phone": "4710771",
-      "lat": -34.90139,
-      "lng": -58.04341
+      "phone": "4842217",
+      "lat": -34.87486,
+      "lng": -58.02327
     },
     {
-      "name": "GARAY",
-      "address": "Calle 450 Nº 1691 (esq Cno. Gral. Belgrano)",
+      "name": "ZAPICO C. BELL",
+      "address": "cno Gral Belgrano esq 445 Km 12600",
       "zone": "Norte",
-      "phone": "4801691",
-      "lat": -34.8749247,
-      "lng": -58.0774371
+      "phone": "4870359",
+      "lat": -34.8744634,
+      "lng": -58.0880797
     },
     {
-      "name": "URBIZTONDO",
-      "address": "473 bis(ex15) e/21A (ex 22) y cno Gral Belgarno",
+      "name": "ALTOS DEL BELL S.C.S.",
+      "address": "28 ESQ 476",
       "zone": "Norte",
-      "phone": "4722829/ 4723428/ 5121856",
-      "lat": -34.8742622,
-      "lng": -58.0467584
+      "phone": "2216167475",
+      "lat": -34.8885398,
+      "lng": -58.0515386
     },
     {
-      "name": "GIOSSO",
-      "address": "6 E/ 499 Y 500",
-      "zone": "Norte",
-      "phone": "221-3644656",
-      "lat": 0.0,
-      "lng": 0.0
-    },
-    {
-      "name": "AVENIDA 72 S.C.S.",
-      "address": "Av. 72 Nro2971 e/154 y 155",
+      "name": "LOS HORNOS S.C.S.",
+      "address": "60 NRO 1979",
       "zone": "Los Hornos",
-      "phone": "4502259",
-      "lat": 0.0,
-      "lng": 0.0
+      "phone": "4509990",
+      "lat": -34.9471367,
+      "lng": -57.9731908
     }
   ],
   "pdfs": [
