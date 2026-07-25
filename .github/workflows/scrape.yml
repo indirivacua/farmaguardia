@@ -11,6 +11,13 @@ on:
     # más cerca de la hora en punto se lo agenda.
     - cron: '40 11,16,23 * * *'
   workflow_dispatch:      # también manual desde la UI
+
+# Un solo deploy a Pages a la vez. Sin cancel-in-progress: si llegan dos
+# corridas juntas queremos que la segunda espere, no que pise a la primera.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
@@ -32,3 +39,24 @@ jobs:
           commit_author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
           commit_user_name: 'github-actions[bot]'
           commit_user_email: '41898282+github-actions[bot]@users.noreply.github.com'
+
+      # El artefacto sale del workspace, no del repo. Es a propósito: si el
+      # JSON scrapeado es idéntico al que ya está commiteado, la action de
+      # arriba no commitea y antes tampoco se publicaba nada (el build viejo
+      # colgaba del push). Así el sitio se republica en cada corrida.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: scrape
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write     # deploy-pages se autentica con OIDC
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
