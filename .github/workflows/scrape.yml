@@ -40,10 +40,8 @@ jobs:
           commit_user_name: 'github-actions[bot]'
           commit_user_email: '41898282+github-actions[bot]@users.noreply.github.com'
 
-      # El artefacto sale del workspace, no del repo. Es a propósito: si el
-      # JSON scrapeado es idéntico al que ya está commiteado, la action de
-      # arriba no commitea y antes tampoco se publicaba nada (el build viejo
-      # colgaba del push). Así el sitio se republica en cada corrida.
+      # Publicamos desde el workflow: el build implícito de Pages no se ve ni
+      # se puede reintentar, y si se cuelga el sitio queda viejo en silencio.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs
