@@ -11,6 +11,14 @@ on:
     # más cerca de la hora en punto se lo agenda.
     - cron: '40 11,16,23 * * *'
   workflow_dispatch:      # también manual desde la UI
+  # Este workflow es el único que publica Pages, así que un cambio al sitio
+  # no se ve hasta que corra. Sin esto habría que esperar al próximo cron.
+  # Los commits del bot usan GITHUB_TOKEN, que no dispara workflows: no hay loop.
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/scrape.yml'
 
 # Un solo deploy a Pages a la vez. Sin cancel-in-progress: si llegan dos
 # corridas juntas queremos que la segunda espere, no que pise a la primera.
