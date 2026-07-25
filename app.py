@@ -106,7 +106,7 @@ def _run_server(host: str, port: int, open_browser: bool) -> None:
     print(f"{bar}\n  FarmaGuardia LP\n{bar}")
     print(f"  Servidor:  http://{host}:{port}")
     print(f"  Fuente:    {SOURCE_URL}")
-    print(f"  Cache:     {CACHE_SECONDS}s (usá 'Refrescar' para forzar)")
+    print(f"  Cache:     {CACHE_SECONDS}s")
     print(f"  Ctrl+C para detener\n{bar}")
 
     print("\n  Scrapeando datos iniciales…", end=" ", flush=True)

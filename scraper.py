@@ -178,9 +178,3 @@ class Scraper:
             self._cache = parse_html(self._fetch())
             self._cached_at = time.time()
             return self._cache
-
-    @property
-    def cache_age(self) -> Optional[float]:
-        if self._cache is None:
-            return None
-        return time.time() - self._cached_at

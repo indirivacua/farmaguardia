@@ -130,7 +130,6 @@ const state = {
     targetId: null,     // farmacia hacia la que se está ruteando
     pinnedId: null,     // destino fijado a mano (si es null, seguimos a la más cercana)
     route: null,        // ruta calculada (ver buildRoute)
-    loading: false,
     arrived: false,
   },
 };
@@ -711,7 +710,7 @@ const Geo = (() => {
   btn.addEventListener('pointerup', () => clearTimeout(pressTimer));
   btn.addEventListener('pointerleave', () => clearTimeout(pressTimer));
 
-  return { enable, disable, toggle, recomputeForNewData };
+  return { enable, recomputeForNewData };
 })();
 
 // --- Navegación paso a paso ---
@@ -720,7 +719,6 @@ const Geo = (() => {
 // router si te desviás, y cambia de destino si otra farmacia pasa a ser la más
 // cercana (con histéresis para no oscilar entre dos casi equidistantes).
 const Nav = (() => {
-  const mapWrap   = $('.map-wrap');
   const card      = $('#route-card');
   const targetEl  = $('#route-target');
   const statsEl   = $('#route-stats');
@@ -963,14 +961,12 @@ const Nav = (() => {
     const to = { lat: target.lat, lng: target.lng };
     inFlight = true;
     lastRequestAt = Date.now();
-    state.nav.loading = true;
     render({ target, loading: true });
 
     fetchRoute(from, to)
       .catch(() => null)
       .then((route) => {
         inFlight = false;
-        state.nav.loading = false;
 
         // Mientras viajaba el pedido pudo cambiar el destino o terminar la
         // navegación: en ese caso la respuesta ya no sirve.
@@ -1014,7 +1010,6 @@ const Nav = (() => {
   function render({ target = null, proj = null, loading = false, arrived = false, empty = false } = {}) {
     if (!state.nav.active) return;
     card.hidden = false;
-    mapWrap.classList.add('navigating');
 
     if (empty) {
       card.classList.remove('approx');
@@ -1065,7 +1060,6 @@ const Nav = (() => {
 
   function hideCard() {
     card.hidden = true;
-    mapWrap.classList.remove('navigating');
   }
 
   // ---- API ----
@@ -1085,7 +1079,7 @@ const Nav = (() => {
     const wasActive = state.nav.active;
     Object.assign(state.nav, {
       active: false, route: null, targetId: null,
-      pinnedId: null, arrived: false, loading: false, dismissed,
+      pinnedId: null, arrived: false, dismissed,
     });
     clearTimeout(cooldownTimer);
     dirty = false;
@@ -1160,7 +1154,7 @@ const Nav = (() => {
     });
   }
 
-  return { init, start, stop, routeTo, autoStart, onPositionChange, onDataChange };
+  return { init, stop, autoStart, onPositionChange, onDataChange };
 })();
 
 // --- Selection (top-level: usado por MapView y ListView) ---

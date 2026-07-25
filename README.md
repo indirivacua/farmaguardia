@@ -154,16 +154,28 @@ Detalles del setup que explican por qué algunas cosas están como están:
 
 ## Desarrollo local
 
-Para iterar sobre el frontend o el scraper con datos en vivo:
-
 ```bash
 pip install -r requirements.txt
 python app.py
 ```
 
-Levanta un servidor en `http://localhost:8000` que sirve el frontend desde
-`docs/` y expone `/api/farmacias` con cache de 5 min. Cambios al HTML/CSS/JS
-se ven con un refresh.
+Levanta un servidor en `http://localhost:8000` que sirve `docs/`. Cambios al
+HTML/CSS/JS se ven con un refresh.
+
+**Qué datos ves**: los del `docs/data/farmacias.json` commiteado, igual que en
+producción — el browser nunca scrapea. Para refrescarlo, corré `--dump`:
+
+```bash
+python app.py --dump docs/data/farmacias.json
+```
+
+El server además expone `/api/farmacias` (scrape en vivo, cache de 5 min,
+`?fresh=1` para forzar). El frontend no lo usa: está para pegarle a mano
+cuando estás tocando el scraper.
+
+```bash
+curl -s localhost:8000/api/farmacias | head -40
+```
 
 ### Opciones de CLI
 
@@ -214,6 +226,9 @@ Ver `scraper.py`. Se parsea con BeautifulSoup usando los selectores:
 
 Si el sitio cambia su estructura HTML, ajustá los selectores en
 `scraper.py` (función `parse_html`).
+
+La clave `pdfs` del JSON (los turneros mensuales por zona) queda disponible
+pero el frontend todavía no la muestra: no es un bug, está a propósito.
 
 El sitio a veces publica coordenadas rotas (`destination=0,0`, o una longitud
 cargada en el campo de latitud). El frontend las filtra con un bounding box
