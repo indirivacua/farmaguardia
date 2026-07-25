@@ -58,9 +58,8 @@ function slugify(s) {
     .replace(/^-+|-+$/g, '').slice(0, 60);
 }
 
-// Los ids salen de nombre + dirección, no del índice del array: así el destino
-// de la ruta y la card seleccionada sobreviven a un refresh de los datos aunque
-// cambie el orden o la cantidad de farmacias de turno.
+// Ids por nombre + dirección, no por índice: así el destino de la ruta y la
+// card seleccionada sobreviven a un refresh que reordene la lista.
 function withStableIds(list) {
   const seen = new Map();
   return list.map((p) => {
@@ -80,6 +79,19 @@ function haversine(lat1, lon1, lat2, lon2) {
             Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
             Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+// El turno va de 08:30 a 08:30. Cuándo vence es lo único que aporta un reloj
+// acá: la hora actual ya la muestra el sistema.
+function turnoLabel() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    hour12: false, hour: '2-digit', minute: '2-digit',
+  }).formatToParts(new Date());
+  const get = (type) => Number(parts.find(p => p.type === type).value);
+  const hour = get('hour') % 24;          // algunos motores devuelven 24 a medianoche
+  const beforeChange = hour < 8 || (hour === 8 && get('minute') < 30);
+  return beforeChange ? 'Turno hasta hoy 08:30' : 'Turno hasta mañana 08:30';
 }
 
 function formatDistance(meters) {
@@ -464,17 +476,13 @@ const ListView = (() => {
   }
 
   function setMeta(meta) {
-    const published = meta.timestamp || '';
     const scraped = meta.scraped_at ? new Date(meta.scraped_at) : null;
     const time = scraped ? scraped.toLocaleTimeString('es-AR', {
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour: '2-digit', minute: '2-digit',
       timeZone: 'America/Argentina/Buenos_Aires',
     }) : '—';
-    metaEl.innerHTML = `
-      ${published ? `Publicado por el sitio: <strong>${escapeHtml(published)}</strong><br/>` : ''}
-      Scrapeado a las ${time} ·
-      <a href="${meta.source}" target="_blank" rel="noopener">fuente</a>
-    `;
+    metaEl.innerHTML = `${turnoLabel()} · actualizado ${time} · ` +
+      `<a href="${escapeHtml(meta.source)}" target="_blank" rel="noopener">fuente</a>`;
   }
 
   function showError(msg, onRetry) {
@@ -689,7 +697,6 @@ const Geo = (() => {
     if (state.userLocation) computeDistances();
   }
 
-  // Click: si ya hay ubicación, centra. Si no, la activa.
   btn.addEventListener('click', () => {
     if (state.userLocation) MapView.flyToUser();
     else toggle();
@@ -713,16 +720,13 @@ const Geo = (() => {
 // router si te desviás, y cambia de destino si otra farmacia pasa a ser la más
 // cercana (con histéresis para no oscilar entre dos casi equidistantes).
 const Nav = (() => {
-  const mapWrap    = $('.map-wrap');
-  const card       = $('#route-card');
-  const badgeEl    = $('#route-badge');
-  const targetEl   = $('#route-target');
-  const statsEl    = $('#route-stats');
-  const stepEl     = $('#route-step');
-  const btnToggle  = $('#btn-route');
-  const btnClose   = $('#route-close');
-  const btnCenter  = $('#route-recenter');
-  const btnNearest = $('#route-nearest');
+  const mapWrap   = $('.map-wrap');
+  const card      = $('#route-card');
+  const targetEl  = $('#route-target');
+  const statsEl   = $('#route-stats');
+  const stepEl    = $('#route-step');
+  const btnToggle = $('#btn-route');
+  const btnClose  = $('#route-close');
 
   let inFlight = false;
   let dirty = false;             // llegó un sync mientras había un pedido en vuelo
@@ -933,8 +937,8 @@ const Nav = (() => {
       const proj = projectOnRoute(route, lat, lng);
       const drift = routeFrom ? haversine(routeFrom.lat, routeFrom.lng, lat, lng) : Infinity;
       if (proj.dist <= NAV.OFF_ROUTE_M && drift < NAV.REFRESH_MOVE_M) {
-        // Seguís sobre la ruta: la recortamos y actualizamos números sin
-        // molestar al router. Esto es lo que corre en la mayoría de los ticks.
+        // Seguís sobre la ruta: recortamos y actualizamos números sin
+        // molestar al router.
         paint(route, proj);
         render({ target, proj });
         return;
@@ -1004,35 +1008,31 @@ const Nav = (() => {
     return `${Math.floor(min / 60)} h ${min % 60} min caminando`;
   }
 
+  const unpinHTML = () => state.nav.pinnedId == null ? ''
+    : '<button class="route-unpin" data-unpin>más cercana</button>';
+
   function render({ target = null, proj = null, loading = false, arrived = false, empty = false } = {}) {
     if (!state.nav.active) return;
     card.hidden = false;
     mapWrap.classList.add('navigating');
-    btnNearest.hidden = state.nav.pinnedId == null;
 
     if (empty) {
       card.classList.remove('approx');
-      badgeEl.textContent = 'Sin destino';
-      targetEl.textContent = 'Ninguna farmacia para rutear';
-      statsEl.innerHTML = '';
+      targetEl.textContent = 'Sin farmacias para rutear';
+      statsEl.innerHTML = `<span class="addr">Ajustá los filtros o la búsqueda</span>${unpinHTML()}`;
       stepEl.className = 'route-step';
-      stepEl.innerHTML = '<span class="arrow">·</span><span>Ajustá los filtros o la búsqueda para volver a tener candidatas.</span>';
+      stepEl.innerHTML = '';
       return;
     }
 
     const route = state.nav.route;
     card.classList.toggle('approx', Boolean(route && route.approx));
-    badgeEl.textContent = route && route.approx ? 'Línea recta'
-      : state.nav.pinnedId != null ? 'Destino fijado'
-      : 'Más cercana';
-
-    targetEl.innerHTML =
-      `${escapeHtml(target.name)}<small>${escapeHtml(target.address)} · ${escapeHtml(target.zone)}</small>`;
+    targetEl.textContent = target.name;
 
     if (arrived) {
-      statsEl.innerHTML = '<span class="dist">Llegaste</span>';
+      statsEl.innerHTML = `<span class="dist">Llegaste</span><span class="addr">${escapeHtml(target.address)}</span>${unpinHTML()}`;
       stepEl.className = 'route-step';
-      stepEl.innerHTML = '<span class="arrow">✓</span><span>Estás en la puerta de la farmacia.</span>';
+      stepEl.innerHTML = '<span class="arrow">✓</span><span>Estás en la puerta.</span>';
       return;
     }
 
@@ -1043,9 +1043,12 @@ const Nav = (() => {
       ? (route.duration * (route.distance ? remaining / route.distance : 1))
       : (remaining != null ? remaining / NAV.WALK_MPS : null);
 
-    statsEl.innerHTML = remaining == null ? '' : `
-      <span class="dist">${formatDistance(remaining)}</span>
-      <span class="eta">${eta != null ? formatEta(eta) : ''}</span>`;
+    statsEl.innerHTML = [
+      remaining == null ? '' : `<span class="dist">${formatDistance(remaining)}</span>`,
+      eta == null ? '' : `<span class="eta">${formatEta(eta)}</span>`,
+      `<span class="addr">${escapeHtml(target.address)}</span>`,
+      unpinHTML(),
+    ].join('');
 
     if (loading || !route || !proj) {
       stepEl.className = 'route-step loading';
@@ -1056,7 +1059,7 @@ const Nav = (() => {
     const step = nextStep(route, proj.along);
     stepEl.className = 'route-step';
     stepEl.innerHTML = step
-      ? `<span class="arrow">↱</span><span>En <b>${formatDistance(step.in)}</b>, ${escapeHtml(step.text.charAt(0).toLowerCase() + step.text.slice(1))}</span>`
+      ? `<span class="arrow">${route.approx ? '⤳' : '↱'}</span><span>En <b>${formatDistance(step.in)}</b>, ${escapeHtml(step.text.charAt(0).toLowerCase() + step.text.slice(1))}</span>`
       : '<span class="arrow">↑</span><span>Seguí derecho hasta la farmacia.</span>';
   }
 
@@ -1128,18 +1131,24 @@ const Nav = (() => {
       }
     });
 
-    btnClose.addEventListener('click', () => stop({ dismissed: true }));
+    btnClose.addEventListener('click', (e) => {
+      e.stopPropagation();          // si no, el click centra la ruta que estamos cerrando
+      stop({ dismissed: true });
+    });
 
-    btnCenter.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('[data-unpin]')) {
+        state.nav.pinnedId = null;
+        fitOnNextRoute = true;
+        sync({ force: true });
+        Toast.show('Siguiendo a la farmacia más cercana');
+        return;
+      }
       if (state.nav.route) MapView.fitRoute(state.nav.route.coords);
       else MapView.flyToUser();
     });
-
-    btnNearest.addEventListener('click', () => {
-      state.nav.pinnedId = null;
-      fitOnNextRoute = true;
-      sync({ force: true });
-      Toast.show('Siguiendo a la farmacia más cercana');
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
     });
 
     // Botones "Ruta" de las cards y de los popups del mapa
@@ -1149,13 +1158,6 @@ const Nav = (() => {
       e.preventDefault();
       routeTo(btn.dataset.routeTo);
     });
-
-    // El alto real de la tarjeta corre los controles de zoom en mobile
-    if (window.ResizeObserver) {
-      new ResizeObserver(() => {
-        document.documentElement.style.setProperty('--route-card-h', `${card.offsetHeight}px`);
-      }).observe(card);
-    }
   }
 
   return { init, start, stop, routeTo, autoStart, onPositionChange, onDataChange };
@@ -1210,27 +1212,8 @@ function setupFilters() {
   });
 }
 
-// --- Clock ---
-function setupClock() {
-  const el = $('#clock-time');
-  function tick() {
-    const now = new Date();
-    const time = now.toLocaleTimeString('es-AR', {
-      hour: '2-digit', minute: '2-digit', hour12: false,
-      timeZone: 'America/Argentina/Buenos_Aires',
-    });
-    const date = now.toLocaleDateString('es-AR', {
-      day: '2-digit', month: '2-digit', timeZone: 'America/Argentina/Buenos_Aires',
-    });
-    el.textContent = `${date} · ${time}`;
-  }
-  tick();
-  setInterval(tick, 30_000);
-}
-
 // --- Misc UI wiring ---
 function setupMiscUI() {
-  $('#banner-close')?.addEventListener('click', (e) => e.target.parentElement.remove());
   $('#fab-list').addEventListener('click', () => BottomSheet.setState('expanded'));
 
   // Tap en el mapa colapsa el sheet si estaba expandido (UX tipo Google Maps)
@@ -1243,22 +1226,36 @@ function setupMiscUI() {
   window.addEventListener('resize', () => {
     MapView.invalidateSize();
     if (!isMobile()) $('#sidebar').dataset.state = 'expanded';
+    applyPeekHeight();
   });
+
+  applyPeekHeight();
+  if (window.ResizeObserver) new ResizeObserver(applyPeekHeight).observe($('.sidebar-top'));
+}
+
+// El alto del "peek" se mide en vez de hardcodearse: así stats + filtros
+// entran siempre enteros, sin cortar los chips de zona. El tope del 40% es
+// para que en landscape el sheet no se coma el mapa.
+function applyPeekHeight() {
+  const h = $('.sidebar-top').offsetHeight + $('#sheet-handle').offsetHeight;
+  if (h <= 0) return;
+  const capped = Math.min(h, Math.round(window.innerHeight * 0.4));
+  document.documentElement.style.setProperty('--sheet-peek-h', `${capped}px`);
 }
 
 // --- Data loading ---
-async function loadData({ fresh = false } = {}) {
-  const btn = $('#btn-refresh');
-  btn.disabled = true;
-  btn.classList.add('spinning');
-  if (fresh) ListView.showLoading('Re-scrapeando colfarmalp.org.ar…');
+let lastLoadAt = 0;
+
+async function loadData({ retry = false } = {}) {
+  if (retry) ListView.showLoading('Cargando farmacias de turno…');
 
   try {
-    const r = await fetch(DATA_URL);
+    const r = await fetch(DATA_URL, { cache: 'no-cache' });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = await r.json();
     if (data.error) throw new Error(data.error);
 
+    lastLoadAt = Date.now();
     state.pharmacies = withStableIds(data.pharmacies);
     Geo.recomputeForNewData();
 
@@ -1268,25 +1265,29 @@ async function loadData({ fresh = false } = {}) {
     // Los datos cambiaron: puede haber otra farmacia más cerca, o la que
     // estábamos siguiendo puede haber salido de turno.
     Nav.onDataChange();
-
-    if (fresh) Toast.show(`✓ ${data.count} farmacias actualizadas`);
   } catch (err) {
-    ListView.showError(err.message, () => loadData({ fresh: true }));
-  } finally {
-    btn.disabled = false;
-    btn.classList.remove('spinning');
+    ListView.showError(err.message, () => loadData({ retry: true }));
   }
+}
+
+// El JSON cambia 3 veces por día: en vez de un botón de refrescar, se
+// recarga solo al volver a la pestaña si pasó un rato.
+const STALE_MS = 15 * 60_000;
+function setupAutoRefresh() {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    if (lastLoadAt && Date.now() - lastLoadAt < STALE_MS) return;
+    loadData();
+  });
 }
 
 // --- Init ---
 function init() {
   setupFilters();
-  setupClock();
   setupMiscUI();
+  setupAutoRefresh();
   Nav.init();
   ListView.bindActivation(selectPharmacy);
-
-  $('#btn-refresh').addEventListener('click', () => loadData({ fresh: true }));
 
   if (isMobile()) {
     requestAnimationFrame(() => BottomSheet.setState('peek'));

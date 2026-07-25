@@ -8,7 +8,7 @@ y se sirven como sitio **100% estático** — sin backend en producción.
 ## Características
 
 - **Mapa interactivo** con pins color-codeados por zona (La Plata / Norte /
-  Los Hornos).
+  Los Hornos); los chips de filtro hacen de referencia de colores.
 - **Filtros** por zona y búsqueda libre por nombre o calle.
 - **Sincronización mapa ↔ lista**: tocar una tarjeta centra el mapa; tocar un
   pin resalta la tarjeta.
@@ -21,13 +21,21 @@ y se sirven como sitio **100% estático** — sin backend en producción.
 - **Navegación tipo GPS** hasta la farmacia más cercana, con la ruta dibujada
   sobre el mapa y recálculo automático (ver abajo).
 - **Bottom-sheet** en mobile con 3 estados (expanded / peek / hidden),
-  arrastrable con el dedo.
+  arrastrable con el dedo. El alto del estado "peek" se mide en runtime a
+  partir del bloque de stats + filtros, así nunca corta los chips de zona.
+- **Sin botón de refrescar**: el JSON cambia 3 veces por día, así que la app
+  lo recarga sola al volver a la pestaña si pasaron más de 15 minutos.
 
 ## Navegación
 
 Con la ubicación activa se traza sola una ruta caminando hasta la farmacia
 más cercana. El botón de la flecha en el header la prende y apaga; el botón
 "Ruta" de cualquier tarjeta o popup fija un destino puntual.
+
+La tarjeta de navegación son tres líneas —destino / distancia + ETA /
+próxima maniobra— y toda la tarjeta es el botón de "centrar la ruta". Cuando
+hay un destino fijado a mano aparece un chip "más cercana" para volver al
+modo automático.
 
 La ruta se reajusta en tres situaciones distintas:
 
