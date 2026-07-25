@@ -44,6 +44,11 @@
           <circle cx="12" cy="12" r="8"/>
         </svg>
       </button>
+      <button class="icon-btn" id="btn-route" title="Ir a la farmacia más cercana" aria-label="Ir a la farmacia más cercana" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+        </svg>
+      </button>
       <button class="icon-btn" id="btn-refresh" title="Volver a scrapear la web ahora" aria-label="Refrescar datos">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>
@@ -102,6 +107,22 @@
         <button aria-label="Cerrar" id="banner-close">✕</button>
         <strong>Datos en vivo</strong>
         Scrapeados desde <a href="https://www.colfarmalp.org.ar/turnos-la-plata/" target="_blank" rel="noopener">colfarmalp.org.ar</a>. Tocá "Refrescar" para actualizar.
+      </div>
+
+      <!-- Tarjeta de navegación: destino, distancia/ETA y próxima maniobra.
+           La maneja el módulo Nav de app.js; arranca oculta. -->
+      <div class="route-card" id="route-card" hidden>
+        <div class="route-head">
+          <span class="route-badge" id="route-badge">Más cercana</span>
+          <button class="route-close" id="route-close" aria-label="Terminar navegación">✕</button>
+        </div>
+        <div class="route-target" id="route-target">—</div>
+        <div class="route-stats" id="route-stats"></div>
+        <div class="route-step" id="route-step"></div>
+        <div class="route-actions">
+          <button class="route-btn" id="route-recenter">Centrar ruta</button>
+          <button class="route-btn" id="route-nearest" hidden>Volver a la más cercana</button>
+        </div>
       </div>
 
       <div class="map-legend" id="map-legend">

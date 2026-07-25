@@ -1,7 +1,15 @@
 name: Scrape farmacias
 on:
   schedule:
-    - cron: '17 * * * *'  # cada hora
+    # El turno corre de 08:30 a 08:30 del día siguiente (hora de Argentina,
+    # UTC-3 todo el año), así que solo hay datos nuevos una vez por día.
+    # Tres corridas alcanzan y sobran:
+    #   11:40 UTC = 08:40 ART · arranca el turno nuevo
+    #   16:40 UTC = 13:40 ART · por si el sitio publicó tarde o corrigió
+    #   23:40 UTC = 20:40 ART · última pasada antes de la noche
+    # Los :40 son a propósito: el scheduler de Actions se demora más cuanto
+    # más cerca de la hora en punto se lo agenda.
+    - cron: '40 11,16,23 * * *'
   workflow_dispatch:      # también manual desde la UI
 jobs:
   scrape:
@@ -19,3 +27,8 @@ jobs:
         with:
           commit_message: 'data: actualización automática'
           file_pattern: 'docs/data/farmacias.json'
+          # Sin esto la action firma como autor al dueño del repo
+          # (github.actor). Estos commits los hace el bot, no una persona.
+          commit_author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
+          commit_user_name: 'github-actions[bot]'
+          commit_user_email: '41898282+github-actions[bot]@users.noreply.github.com'

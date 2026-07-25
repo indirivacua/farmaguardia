@@ -31,6 +31,10 @@
 
   --header-h: 76px;
   --sheet-peek-h: 180px;    /* altura visible cuando está en modo "peek" */
+
+  /* Alto real de la tarjeta de navegación. Lo setea app.js con un
+     ResizeObserver para poder correr los controles del mapa sin taparlos. */
+  --route-card-h: 0px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -547,6 +551,13 @@ header {
 }
 .pin svg { width: 100%; height: 100%; display: block; }
 
+/* Pin del destino de la ruta activa: late para diferenciarse del resto */
+.pin.target { animation: targetPulse 1.8s ease-in-out infinite; }
+@keyframes targetPulse {
+  0%, 100% { transform: scale(1.15) translateY(-3px); }
+  50%      { transform: scale(1.3) translateY(-7px); }
+}
+
 /* Pin especial para la ubicación del usuario */
 .user-pin {
   background: none !important;
@@ -640,6 +651,155 @@ header {
   width: 10px; height: 10px;
   border-radius: 50%;
   border: 1.5px solid var(--ink);
+}
+
+/* ---- Tarjeta de navegación ----
+   Desktop: arriba a la derecha (donde iría el banner "Datos en vivo", que se
+   esconde mientras navegás). Mobile: barra al tope del mapa. */
+.route-card {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  max-width: calc(100% - 40px);
+  background: var(--ink);
+  color: var(--paper);
+  border: 2px solid var(--sun);
+  border-radius: var(--radius);
+  box-shadow: 4px 4px 0 rgba(10, 26, 26, 0.4);
+  padding: 12px 14px;
+  z-index: 700;
+  animation: slideIn 0.35s cubic-bezier(.2, .9, .3, 1.3) both;
+}
+.route-card[hidden] { display: none; }
+
+.route-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.route-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--sun);
+  padding: 3px 8px;
+  border-radius: 100px;
+}
+.route-card.approx .route-badge { background: var(--coral); color: #fff; }
+.route-close {
+  background: none;
+  border: none;
+  color: var(--sun);
+  font-size: 15px;
+  cursor: pointer;
+  opacity: 0.7;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  margin: -4px -4px -4px 0;
+}
+.route-close:hover { opacity: 1; }
+
+.route-target {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.route-target small {
+  display: block;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 400;
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 2px;
+  letter-spacing: 0;
+}
+
+.route-stats {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.route-stats .dist {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--sun);
+  font-variation-settings: "opsz" 144;
+}
+.route-stats .eta {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.route-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(245, 241, 232, 0.18);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.route-step .arrow {
+  font-size: 15px;
+  line-height: 1.1;
+  color: var(--sun);
+  flex-shrink: 0;
+}
+.route-step b { color: var(--sun); font-weight: 700; }
+.route-step.loading { opacity: 0.7; font-style: italic; }
+
+.route-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.route-btn {
+  flex: 1 1 auto;
+  min-height: 32px;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--paper);
+  background: transparent;
+  border: 1.5px solid rgba(245, 241, 232, 0.35);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.route-btn:hover { background: var(--sun); color: var(--ink); border-color: var(--sun); }
+.route-btn[hidden] { display: none; }
+
+/* Mientras navegás, el banner informativo estorba */
+.map-wrap.navigating .info-banner { display: none; }
+
+/* Chip "En ruta" en la card de la farmacia destino */
+.pharma.routing { border-color: var(--moss); box-shadow: 3px 3px 0 var(--moss); }
+.pharma-routing-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--paper);
+  background: var(--moss);
+  padding: 3px 8px;
+  border-radius: 100px;
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 .info-banner {
@@ -908,9 +1068,26 @@ header {
     bottom: calc(24px + var(--safe-bottom));
   }
 
+  /* Tarjeta de navegación: barra al tope del mapa, ancho completo */
+  .route-card {
+    top: 8px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    padding: 10px 12px;
+  }
+  .route-target { font-size: 15px; }
+  .route-stats .dist { font-size: 22px; }
+  .route-step { margin-top: 8px; padding-top: 8px; }
+
   /* Controles de zoom del mapa: moverlos arriba para que no se
      tapen con el bottom-sheet y evitar la esquina del notch. */
   .leaflet-top.leaflet-left { top: 8px; }
+  /* …pero si hay ruta activa, bajan para no quedar debajo de la tarjeta */
+  .map-wrap.navigating .leaflet-top.leaflet-left {
+    top: calc(var(--route-card-h) + 16px);
+  }
   .leaflet-control-zoom a { width: 40px !important; height: 40px !important; line-height: 36px !important; }
 
   .leaflet-control-attribution {
