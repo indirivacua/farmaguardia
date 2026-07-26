@@ -476,11 +476,16 @@ const ListView = (() => {
 
   function setMeta(meta) {
     const scraped = meta.scraped_at ? new Date(meta.scraped_at) : null;
-    const time = scraped ? scraped.toLocaleTimeString('es-AR', {
-      hour: '2-digit', minute: '2-digit',
-      timeZone: 'America/Argentina/Buenos_Aires',
-    }) : '—';
-    metaEl.innerHTML = `${turnoLabel()} · actualizado ${time} · ` +
+    const TZ = 'America/Argentina/Buenos_Aires';
+    // Sin año: el scrape corre a diario, así que sólo importa día y mes.
+    const stamp = scraped
+      ? scraped.toLocaleDateString('es-AR', {
+          day: '2-digit', month: '2-digit', timeZone: TZ,
+        }) + ' ' + scraped.toLocaleTimeString('es-AR', {
+          hour: '2-digit', minute: '2-digit', timeZone: TZ,
+        })
+      : '—';
+    metaEl.innerHTML = `${turnoLabel()} · actualizado ${stamp} · ` +
       `<a href="${escapeHtml(meta.source)}" target="_blank" rel="noopener">fuente</a>`;
   }
 
