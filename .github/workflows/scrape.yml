@@ -13,7 +13,6 @@ on:
   workflow_dispatch:      # también manual desde la UI
   # Este workflow es el único que publica Pages, así que un cambio al sitio
   # no se ve hasta que corra. Sin esto habría que esperar al próximo cron.
-  # Los commits del bot usan GITHUB_TOKEN, que no dispara workflows: no hay loop.
   push:
     branches: [main]
     paths:
@@ -30,7 +29,7 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -38,15 +37,6 @@ jobs:
       - run: pip install -r requirements.txt
       - run: mkdir -p docs/data
       - run: python app.py --dump docs/data/farmacias.json
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'data: actualización automática'
-          file_pattern: 'docs/data/farmacias.json'
-          # Sin esto la action firma como autor al dueño del repo
-          # (github.actor). Estos commits los hace el bot, no una persona.
-          commit_author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
-          commit_user_name: 'github-actions[bot]'
-          commit_user_email: '41898282+github-actions[bot]@users.noreply.github.com'
 
       # Publicamos desde el workflow: el build implícito de Pages no se ve ni
       # se puede reintentar, y si se cuelga el sitio queda viejo en silencio.

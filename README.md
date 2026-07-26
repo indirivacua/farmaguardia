@@ -85,13 +85,17 @@ flowchart LR
     C -->|ejecuta| B
     A -->|HTTP scrape| B
     B -->|genera| D
-    D -->|git commit| E
+    D -->|artifact| E
     E -->|fetch| F
 ```
 
-Un workflow corre el scraper, commitea el JSON actualizado, y GitHub Pages lo
-sirve junto con el frontend estático. El browser hace
-`fetch('data/farmacias.json')` y listo — sin servidor, sin CORS, gratis.
+Un workflow corre el scraper y publica `docs/` en Pages con el JSON recién
+generado adentro. El browser hace `fetch('data/farmacias.json')` y listo — sin
+servidor, sin CORS, gratis.
+
+**El JSON no se versiona.** El artifact de Pages se arma desde el working tree
+del runner, así que el dump viaja al deploy sin pasar por git. El dato vive sólo
+en el último deploy publicado: no hay historial de turnos pasados.
 
 ### Frecuencia de scraping
 
@@ -121,19 +125,15 @@ farmaguardia/
     ├── styles.css
     ├── app.js
     └── data/
-        ├── .gitkeep
-        └── farmacias.json          # generado por el workflow
+        └── farmacias.json          # generado por el workflow, sin versionar
 ```
 
 ## Deploy en GitHub Pages
 
-1. **Settings → Pages**: source = `Deploy from a branch`, branch = `main`,
-   folder = **`/docs`** → Save.
-2. **Settings → Actions → General → Workflow permissions**: marcá
-   **"Read and write permissions"**. Sin esto el job corre verde pero el
-   commit nunca llega al repo.
-3. **Actions → "Scrape farmacias" → Run workflow** para generar el JSON
-   inicial (o esperá a la próxima corrida del cron).
+1. **Settings → Pages**: source = **`GitHub Actions`** → Save. El build y el
+   deploy los hace el workflow.
+2. **Actions → "Scrape farmacias" → Run workflow** para publicar el sitio con
+   datos frescos (o esperá a la próxima corrida del cron).
 
 ### Notas de implementación
 
@@ -142,15 +142,13 @@ Detalles del setup que explican por qué algunas cosas están como están:
 - **Las rutas del HTML son relativas** (`href="styles.css"`, no
   `href="/styles.css"`). Las absolutas rompen al servir desde un subpath tipo
   `usuario.github.io/proyecto/` o desde un dominio custom con subdirectorio.
-- **`docs/data/` tiene que existir** antes de correr `--dump`, porque
-  `Path.write_text()` no crea carpetas padre. De ahí el `.gitkeep` y el
-  `Path(path).parent.mkdir(parents=True, exist_ok=True)` de `_dump_to_file`.
+- **`docs/data/` no existe en un checkout limpio**, porque no hay nada
+  versionado adentro. `_dump_to_file` la crea con
+  `Path(path).parent.mkdir(parents=True, exist_ok=True)`; el workflow hace
+  además un `mkdir -p` para no depender de ese detalle de `app.py`.
 - **Los ids de farmacia salen de nombre + dirección**, no del índice del
   array: así el destino de la ruta y la tarjeta seleccionada sobreviven a un
   refresh de los datos aunque cambie el orden o la cantidad de farmacias.
-- **Los commits de datos los firma `github-actions[bot]`** (autor y
-  committer), vía `commit_author` en el workflow. Por defecto la action usa
-  `github.actor` como autor, que es el dueño del repo.
 
 ## Desarrollo local
 
@@ -162,8 +160,9 @@ python app.py
 Levanta un servidor en `http://localhost:8000` que sirve `docs/`. Cambios al
 HTML/CSS/JS se ven con un refresh.
 
-**Qué datos ves**: los del `docs/data/farmacias.json` commiteado, igual que en
-producción — el browser nunca scrapea. Para refrescarlo, corré `--dump`:
+**Qué datos ves**: los de `docs/data/farmacias.json`, igual que en producción —
+el browser nunca scrapea. El archivo no viene en el clon, así que generalo con
+`--dump`:
 
 ```bash
 python app.py --dump docs/data/farmacias.json
