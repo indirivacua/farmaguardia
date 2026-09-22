@@ -124,6 +124,8 @@ farmaguardia/
     ├── index.html
     ├── styles.css
     ├── app.js
+    ├── config.example.js           # plantilla de config.js (key de CARTO)
+    ├── config.js                   # sin versionar: local a mano, en CI desde un secret
     └── data/
         └── farmacias.json          # generado por el workflow, sin versionar
 ```
@@ -132,8 +134,29 @@ farmaguardia/
 
 1. **Settings → Pages**: source = **`GitHub Actions`** → Save. El build y el
    deploy los hace el workflow.
-2. **Actions → "Scrape farmacias" → Run workflow** para publicar el sitio con
+2. **Settings → Secrets and variables → Actions → New repository secret**:
+   `CARTO_API_KEY` con la key de CARTO (ver [Tiles del mapa](#tiles-del-mapa)).
+   Sin el secret el deploy anda igual, pero el mapa sale con marca de agua.
+3. **Actions → "Scrape farmacias" → Run workflow** para publicar el sitio con
    datos frescos (o esperá a la próxima corrida del cron).
+
+### Tiles del mapa
+
+El mapa usa los tiles raster de CARTO (Voyager), que
+[piden API key](https://carto.com/basemaps/apikey/). Como el repo es público,
+la key **no se versiona**: `app.js` la lee de `window.FARMAGUARDIA_CONFIG`,
+que define `docs/config.js` (en `.gitignore`).
+
+- **En producción** el workflow escribe `docs/config.js` desde el secret
+  `CARTO_API_KEY` antes de subir el artifact, igual que hace con el JSON.
+- **En local** copiá `docs/config.example.js` a `docs/config.js` y pegá la key.
+- **Sin `config.js`** el `<script>` da 404, `CARTO_KEY` queda vacía y los tiles
+  se piden sin key: salen con la marca de agua "API KEY REQUIRED", pero la
+  app funciona igual.
+
+La key igual es visible para cualquiera que mire las requests del browser (va
+en la query de cada tile): lo que la protege es restringirla por dominio en el
+dashboard de CARTO, no esconderla.
 
 ### Notas de implementación
 
@@ -159,6 +182,9 @@ python app.py
 
 Levanta un servidor en `http://localhost:8000` que sirve `docs/`. Cambios al
 HTML/CSS/JS se ven con un refresh.
+
+**Mapa sin marca de agua**: copiá `docs/config.example.js` a `docs/config.js`
+y completá `cartoKey` (ver [Tiles del mapa](#tiles-del-mapa)).
 
 **Qué datos ves**: los de `docs/data/farmacias.json`, igual que en producción —
 el browser nunca scrapea. El archivo no viene en el clon, así que generalo con

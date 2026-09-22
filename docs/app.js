@@ -13,6 +13,12 @@ const DEFAULT_ZOOM = 13;
 const DATA_URL = 'data/farmacias.json';
 const POS_REFRESH_THRESHOLD_M = 10;   // umbral para re-renderizar la lista en watchPosition
 
+// Key de CARTO para los tiles. Viene de docs/config.js, que no se versiona
+// (ver config.example.js); si falta, los tiles salen con marca de agua.
+const CARTO_KEY = (window.FARMAGUARDIA_CONFIG || {}).cartoKey || '';
+const TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+  + (CARTO_KEY ? `?key=${encodeURIComponent(CARTO_KEY)}` : '');
+
 // --- Navegación ---
 // Ruteo contra instancias públicas de OSRM (misma API v5 en las dos, así que
 // el parseo es idéntico). La de FOSSGIS tiene perfil peatonal — que es el que
@@ -179,7 +185,7 @@ const MapView = (() => {
     center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM, zoomControl: true, tap: true,
   });
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  L.tileLayer(TILE_URL, {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
     maxZoom: 19,

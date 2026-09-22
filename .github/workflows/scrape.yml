@@ -38,6 +38,16 @@ jobs:
       - run: mkdir -p docs/data
       - run: python app.py --dump docs/data/farmacias.json
 
+      # La key de CARTO no se versiona: config.js se arma acá desde el secret
+      # y viaja al deploy igual que el JSON. Sin el secret se publica igual,
+      # con la key vacía (tiles con marca de agua) y un warning en la corrida.
+      - name: Generar docs/config.js
+        env:
+          CARTO_API_KEY: ${{ secrets.CARTO_API_KEY }}
+        run: |
+          [ -n "$CARTO_API_KEY" ] || echo "::warning::Falta el secret CARTO_API_KEY; el mapa sale con marca de agua"
+          python -c 'import json, os; print("window.FARMAGUARDIA_CONFIG = " + json.dumps({"cartoKey": os.environ["CARTO_API_KEY"]}) + ";")' > docs/config.js
+
       # Publicamos desde el workflow: el build implícito de Pages no se ve ni
       # se puede reintentar, y si se cuelga el sitio queda viejo en silencio.
       - uses: actions/upload-pages-artifact@v3
